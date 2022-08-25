@@ -1,8 +1,10 @@
 global using web_api_netcore_project.Models;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Principal;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using web_api_netcore_project.Data;
@@ -10,17 +12,23 @@ using web_api_netcore_project.Services.CharacterService;
 using web_api_netcore_project.Services.WeaponService;
 
 var builder = WebApplication.CreateBuilder(args);
+var services = builder.Services;
+var configuration = builder.Configuration;
 
 // Add logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
 // Add services to the container.
-builder.Services.AddDbContext<DataContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddControllers();
+services.AddDbContext<DataContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+services.AddControllers();
+
+// Turn off claim mapping for Microsoft middleware 
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen(c =>
 {
     c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
     {
@@ -31,11 +39,13 @@ builder.Services.AddSwaggerGen(c =>
     });
     c.OperationFilter<SecurityRequirementsOperationFilter>();
 });
-builder.Services.AddAutoMapper(typeof(Program).Assembly);
-builder.Services.AddScoped<ICharacterService, CharacterService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IWeaponService, WeaponService>();
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+services.AddAutoMapper(typeof(Program).Assembly);
+services.AddScoped<ICharacterService, CharacterService>();
+services.AddScoped<IAuthService, AuthService>();
+services.AddScoped<IWeaponService, WeaponService>();
+
+// Authentication
+services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
@@ -45,9 +55,26 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ValidateIssuer = false,
         ValidateAudience = false
     };
-});
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddTransient<IPrincipal>(provider => provider.GetService<IHttpContextAccessor>().HttpContext.User);
+}).AddGoogle(googleOptions =>
+    {
+        googleOptions.ClientId = configuration["Authentication:Google:ClientId"];
+        googleOptions.ClientSecret = configuration["Authentication:Google:ClientSecret"];
+    });
+
+services.AddHttpContextAccessor();
+services.AddTransient<IPrincipal>(provider => provider.GetService<IHttpContextAccessor>().HttpContext.User);
+
+services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFinancingAppClient",
+                  builder =>
+                  {
+                      builder
+                      .WithOrigins("http://localhost:3000")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod();
+                  });
+            });
 
 var app = builder.Build();
 
@@ -57,6 +84,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowFinancingAppClient");
 
 app.UseHttpsRedirection();
 

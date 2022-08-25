@@ -34,7 +34,7 @@ namespace web_api_netcore_project.Data
         {
             ServiceResponse<string> response = new ServiceResponse<string>();
 
-            if (await UserExists(user.Username))
+            if (await UserExists(user.Email))
             {
                 response.Success = false;
                 response.Message = "User already exists.";
@@ -54,26 +54,33 @@ namespace web_api_netcore_project.Data
             return response;
         }
 
-        public async Task<ServiceResponse<string>> Login(string username, string password)
+        public async Task<ServiceResponse<string>> Login(string email, string password)
         {
-            var response = new ServiceResponse<string>();
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower().Equals(username.ToLower()));
+            ServiceResponse<string> response = new ServiceResponse<string>();
+            try
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower().Equals(email.ToLower()));
 
-            if (user == null)
-            {
-                response.Success = false;
-                response.Message = "User not found.";
+                if (user == null)
+                {
+                    response.Success = false;
+                    response.Message = "User not found.";
+                }
+                else if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+                {
+                    response.Success = false;
+                    response.Message = "Wrong password.";
+                }
+                else
+                {
+                    response.Data = CreateToken(user);
+                }
             }
-            else if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+            catch (Exception ex)
             {
-                response.Success = false;
-                response.Message = "Wrong password.";
-            }
-            else
-            {
-                response.Data = CreateToken(user);
-            }
 
+                throw;
+            }
             return response;
         }
 
@@ -82,14 +89,17 @@ namespace web_api_netcore_project.Data
             ServiceResponse<LoadUserDto> response = new ServiceResponse<LoadUserDto>();
             try
             {
-                // int userId;
-                // int.TryParse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), out userId);
+                int userId;
+                int.TryParse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), out userId);
 
                 var email = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
 
+                var userSub = _httpContextAccessor.HttpContext.User.FindFirst("sub")?.Value;
+
+
                 Console.WriteLine("Got email" + email);
 
-                if (email == string.Empty)
+                if (email == null)
                 {
                     response.Success = false;
                     response.Message = "No current user logged in.";
@@ -116,9 +126,9 @@ namespace web_api_netcore_project.Data
             return response;
         }
 
-        public async Task<bool> UserExists(string username)
+        public async Task<bool> UserExists(string email)
         {
-            if (await _context.Users.AnyAsync(u => u.Username.ToLower() == username.ToLower()))
+            if (await _context.Users.AnyAsync(u => u.Email.ToLower() == email.ToLower()))
             {
                 return true;
             }
@@ -147,7 +157,7 @@ namespace web_api_netcore_project.Data
         {
             List<Claim> claims = new List<Claim> {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username)
+                new Claim(ClaimTypes.Name, user.Email)
             };
 
             SymmetricSecurityKey key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
@@ -166,5 +176,42 @@ namespace web_api_netcore_project.Data
 
             return tokenHandler.WriteToken(token);
         }
+
+        // private LoadUserDto? ValidateToken(string token)
+        // {
+        //     LoadUserDto user = null;
+
+        //     if (token == null)
+        //     {
+        //         return null;
+        //     }
+
+        //     JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+        //     var key = System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value);
+
+        //     try
+        //     {
+        //         tokenHandler.ValidateToken(token, new TokenValidationParameters
+        //         {
+        //             ValidateIssuerSigningKey = true,
+        //             IssuerSigningKey = new SymmetricSecurityKey(key),
+        //             ValidateIssuer = false,
+        //             ValidateAudience = false,
+        //             // set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes after)
+        //             ClockSkew = TimeSpan.Zero
+        //         }, out SecurityToken validatedToken);
+
+        //         var jwtToken = (JwtSecurityToken)validatedToken;
+        //         var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
+
+        //         // return user
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         Console.WriteLine(ex.Message);
+        //     }
+
+        //     return user;
+        // }
     }
 }
