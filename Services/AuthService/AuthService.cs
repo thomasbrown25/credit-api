@@ -15,11 +15,11 @@ namespace web_api_netcore_project.Data
 {
     public class AuthService : IAuthService
     {
+        public static User user = new User();
         private readonly DataContext _context;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
-        private readonly IPrincipal _principal;
 
         public AuthService(DataContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IMapper mapper, IPrincipal principal)
         {
@@ -27,7 +27,6 @@ namespace web_api_netcore_project.Data
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
-            _principal = principal;
         }
 
         public async Task<ServiceResponse<string>> Register(User user, string password)
@@ -37,7 +36,7 @@ namespace web_api_netcore_project.Data
             if (await UserExists(user.Email))
             {
                 response.Success = false;
-                response.Message = "User already exists.";
+                response.Message = "A user with that email already exists.";
                 return response;
             }
 
@@ -50,7 +49,7 @@ namespace web_api_netcore_project.Data
             await _context.SaveChangesAsync();
 
             // after we save user, we create and return the jwt token
-            response.Token = CreateToken(user);
+            response.Data = CreateToken(user);
             return response;
         }
 
@@ -84,20 +83,11 @@ namespace web_api_netcore_project.Data
             return response;
         }
 
-        public async Task<ServiceResponse<LoadUserDto>> LoadUser()
+        public async Task<ServiceResponse<LoadUserDto>> LoadUser(string email)
         {
             ServiceResponse<LoadUserDto> response = new ServiceResponse<LoadUserDto>();
             try
             {
-                int userId;
-                int.TryParse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier), out userId);
-
-                var email = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
-
-                var userSub = _httpContextAccessor.HttpContext.User.FindFirst("sub")?.Value;
-
-
-                Console.WriteLine("Got email" + email);
 
                 if (email == null)
                 {
@@ -106,7 +96,7 @@ namespace web_api_netcore_project.Data
                     return response;
                 }
 
-                User user = null;
+                User user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower().Equals(email.ToLower()));
 
                 if (user == null)
                 {
@@ -128,10 +118,18 @@ namespace web_api_netcore_project.Data
 
         public async Task<bool> UserExists(string email)
         {
-            if (await _context.Users.AnyAsync(u => u.Email.ToLower() == email.ToLower()))
+            try
             {
-                return true;
+                if (await _context.Users.AnyAsync(u => u.Email.ToLower() == email.ToLower()))
+                {
+                    return true;
+                }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
             return false;
         }
 
@@ -155,63 +153,36 @@ namespace web_api_netcore_project.Data
 
         private string CreateToken(User user)
         {
-            List<Claim> claims = new List<Claim> {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Email),
                 new Claim(ClaimTypes.Name, user.Email)
             };
 
-            SymmetricSecurityKey key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
+            SymmetricSecurityKey key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Key").Value));
 
             SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
-            SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddDays(1),
-                SigningCredentials = creds
-            };
+            // SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
+            // {
+            //     Subject = new ClaimsIdentity(claims),
+            //     Expires = DateTime.Now.AddDays(1),
+            //     SigningCredentials = creds
+            // };
 
-            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-            SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
+            // JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            // SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
 
-            return tokenHandler.WriteToken(token);
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: creds
+            );
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return jwt;
         }
 
-        // private LoadUserDto? ValidateToken(string token)
-        // {
-        //     LoadUserDto user = null;
-
-        //     if (token == null)
-        //     {
-        //         return null;
-        //     }
-
-        //     JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-        //     var key = System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value);
-
-        //     try
-        //     {
-        //         tokenHandler.ValidateToken(token, new TokenValidationParameters
-        //         {
-        //             ValidateIssuerSigningKey = true,
-        //             IssuerSigningKey = new SymmetricSecurityKey(key),
-        //             ValidateIssuer = false,
-        //             ValidateAudience = false,
-        //             // set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes after)
-        //             ClockSkew = TimeSpan.Zero
-        //         }, out SecurityToken validatedToken);
-
-        //         var jwtToken = (JwtSecurityToken)validatedToken;
-        //         var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
-
-        //         // return user
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         Console.WriteLine(ex.Message);
-        //     }
-
-        //     return user;
-        // }
     }
 }

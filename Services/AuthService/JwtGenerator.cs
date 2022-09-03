@@ -19,7 +19,7 @@ namespace financing_api.Services.AuthService
             _key = new RsaSecurityKey(privateRSA);
         }
 
-        public string CreateUserAuthToken(string userId)
+        public string CreateUserAuthToken(string userEmail)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -28,7 +28,7 @@ namespace financing_api.Services.AuthService
                 Issuer = "AuthService",
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                            new Claim(ClaimTypes.Sid, userId.ToString())
+                            new Claim(ClaimTypes.Sid, userEmail.ToString())
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(60),
                 SigningCredentials = new SigningCredentials(_key, SecurityAlgorithms.RsaSha256)

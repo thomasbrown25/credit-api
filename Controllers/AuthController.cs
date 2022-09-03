@@ -28,7 +28,7 @@ namespace web_api_netcore_project.Controllers
         public async Task<ActionResult<ServiceResponse<int>>> Register(UserRegisterDto request)
         {
             var response = await _authService.Register(
-                new User { Username = request.Username, Email = request.Email }, request.Password
+                new User { FirstName = request.Firstname, LastName = request.Lastname, Email = request.Email }, request.Password
             );
 
             if (!response.Success)
@@ -51,10 +51,12 @@ namespace web_api_netcore_project.Controllers
         }
 
         // Load current user
-        [HttpPost("")]
+        [Authorize]
+        [HttpGet("load-user")]
         public async Task<ActionResult<ServiceResponse<LoadUserDto>>> LoadUser()
         {
-            var response = await _authService.LoadUser();
+            string email = User?.Identity?.Name;
+            var response = await _authService.LoadUser(email);
 
             if (!response.Success)
             {

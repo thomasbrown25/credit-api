@@ -20,7 +20,7 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
 // Add services to the container.
-services.AddDbContext<DataContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+services.AddDbContext<DataContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("MainConnection")));
 services.AddControllers();
 
 // Turn off claim mapping for Microsoft middleware 
@@ -38,7 +38,9 @@ services.AddSwaggerGen(c =>
         Type = SecuritySchemeType.ApiKey
     });
     c.OperationFilter<SecurityRequirementsOperationFilter>();
+
 });
+services.AddSwaggerGenNewtonsoftSupport();
 services.AddAutoMapper(typeof(Program).Assembly);
 services.AddScoped<ICharacterService, CharacterService>();
 services.AddScoped<IAuthService, AuthService>();
@@ -51,14 +53,14 @@ services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value)),
+        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration.GetSection("AppSettings:Key").Value)),
         ValidateIssuer = false,
         ValidateAudience = false
     };
 }).AddGoogle(googleOptions =>
     {
-        googleOptions.ClientId = configuration["Authentication:Google:ClientId"];
-        googleOptions.ClientSecret = configuration["Authentication:Google:ClientSecret"];
+        googleOptions.ClientId = configuration["AppSettings:Google:ClientId"];
+        googleOptions.ClientSecret = configuration["AppSettings:Google:ClientSecret"];
     });
 
 services.AddHttpContextAccessor();

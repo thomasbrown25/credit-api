@@ -19,7 +19,7 @@ namespace web_api_netcore_project
             CreateMap<UpdateCharacterDto, Character>();
             CreateMap<Weapon, GetWeaponDto>();
             CreateMap<Skill, GetSkillDto>();
-            CreateMap<LoadUserDto, User>();
+            CreateMap<User, LoadUserDto>();
         }
     }
 }
