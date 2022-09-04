@@ -17,12 +17,14 @@ namespace financing_api.Data
         private readonly DataContext _context;
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthService(DataContext context, IConfiguration configuration, IMapper mapper)
+        public AuthService(DataContext context, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _configuration = configuration;
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<ServiceResponse<string>> Register(User user, string password)
@@ -80,20 +82,12 @@ namespace financing_api.Data
             return response;
         }
 
-        public async Task<ServiceResponse<LoadUserDto>> LoadUser(string email)
+        public async Task<ServiceResponse<LoadUserDto>> LoadUser()
         {
             ServiceResponse<LoadUserDto> response = new ServiceResponse<LoadUserDto>();
             try
             {
-
-                if (email == null)
-                {
-                    response.Success = false;
-                    response.Message = "No current user logged in.";
-                    return response;
-                }
-
-                User user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower().Equals(email.ToLower()));
+                User user = GetCurrentUser();
 
                 if (user == null)
                 {
@@ -169,6 +163,31 @@ namespace financing_api.Data
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
 
             return jwt;
+        }
+
+
+        // Utility Methods
+        private string GetUserEmail() => _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        private User GetCurrentUser()
+        {
+            try
+            {
+                string email = GetUserEmail();
+
+                if (email == null)
+                    return null;
+
+                // Get current user from sql db
+                User user = _context.Users.FirstOrDefault(u => u.Email.ToLower().Equals(email.ToLower()));
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
         }
 
     }

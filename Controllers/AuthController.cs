@@ -55,10 +55,8 @@ namespace financing_api.Controllers
         [HttpGet("load-user")]
         public async Task<ActionResult<ServiceResponse<LoadUserDto>>> LoadUser()
         {
-            // Get the email from the ClaimsPrincipal for the current user
-            string email = User?.Identity?.Name;
 
-            var response = await _authService.LoadUser(email);
+            var response = await _authService.LoadUser();
 
             if (!response.Success)
             {
