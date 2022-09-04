@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using web_api_netcore_project.Data;
+using financing_api.Data;
 
 #nullable disable
 
-namespace web_api_netcore_project.Migrations
+namespace financing_api.Migrations
 {
     [DbContext(typeof(DataContext))]
     [Migration("20220822034021_UserCharacterRelationship")]
@@ -24,7 +24,7 @@ namespace web_api_netcore_project.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("web_api_netcore_project.Models.Character", b =>
+            modelBuilder.Entity("financing_api.Models.Character", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -61,7 +61,7 @@ namespace web_api_netcore_project.Migrations
                     b.ToTable("Characters");
                 });
 
-            modelBuilder.Entity("web_api_netcore_project.Models.User", b =>
+            modelBuilder.Entity("financing_api.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -86,16 +86,16 @@ namespace web_api_netcore_project.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("web_api_netcore_project.Models.Character", b =>
+            modelBuilder.Entity("financing_api.Models.Character", b =>
                 {
-                    b.HasOne("web_api_netcore_project.Models.User", "User")
+                    b.HasOne("financing_api.Models.User", "User")
                         .WithMany("Characters")
                         .HasForeignKey("UserId");
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("web_api_netcore_project.Models.User", b =>
+            modelBuilder.Entity("financing_api.Models.User", b =>
                 {
                     b.Navigation("Characters");
                 });

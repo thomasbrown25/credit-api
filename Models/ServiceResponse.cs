@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace web_api_netcore_project.Models
+namespace financing_api.Models
 {
     public class ServiceResponse<T>
     {

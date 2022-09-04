@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace web_api_netcore_project.Migrations
+namespace financing_api.Migrations
 {
     public partial class UserModel : Migration
     {

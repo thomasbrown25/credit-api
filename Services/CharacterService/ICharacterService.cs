@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using web_api_netcore_project.Dtos.Character;
+using financing_api.Dtos.Character;
 
-namespace web_api_netcore_project.Services.CharacterService
+namespace financing_api.Services.CharacterService
 {
     public interface ICharacterService
     {

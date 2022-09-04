@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace web_api_netcore_project.Models
+namespace financing_api.Models
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum RpgClass

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace web_api_netcore_project.Dtos.User
+namespace financing_api.Dtos.User
 {
     public class UserLoginDto
     {

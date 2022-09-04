@@ -4,17 +4,12 @@
 
 namespace financing_api.Migrations
 {
-    public partial class ModifyingUsers : Migration
+    public partial class PlaidAccessToken : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "Username",
-                table: "Users",
-                newName: "Lastname");
-
             migrationBuilder.AddColumn<string>(
-                name: "Firstname",
+                name: "PlaidAccessToken",
                 table: "Users",
                 type: "nvarchar(max)",
                 nullable: false,
@@ -24,13 +19,8 @@ namespace financing_api.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Firstname",
+                name: "PlaidAccessToken",
                 table: "Users");
-
-            migrationBuilder.RenameColumn(
-                name: "Lastname",
-                table: "Users",
-                newName: "Username");
         }
     }
 }

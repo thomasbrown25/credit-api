@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
-using System.Security.Principal;
 using System.Threading.Tasks;
 using AutoMapper;
 using financing_api.Dtos.User;
@@ -11,21 +10,18 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
-namespace web_api_netcore_project.Data
+namespace financing_api.Data
 {
     public class AuthService : IAuthService
     {
-        public static User user = new User();
         private readonly DataContext _context;
         private readonly IConfiguration _configuration;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
 
-        public AuthService(DataContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IMapper mapper, IPrincipal principal)
+        public AuthService(DataContext context, IConfiguration configuration, IMapper mapper)
         {
             _context = context;
             _configuration = configuration;
-            _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
         }
 
@@ -56,6 +52,7 @@ namespace web_api_netcore_project.Data
         public async Task<ServiceResponse<string>> Login(string email, string password)
         {
             ServiceResponse<string> response = new ServiceResponse<string>();
+
             try
             {
                 var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower().Equals(email.ToLower()));
@@ -162,16 +159,6 @@ namespace web_api_netcore_project.Data
             SymmetricSecurityKey key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Key").Value));
 
             SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-
-            // SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
-            // {
-            //     Subject = new ClaimsIdentity(claims),
-            //     Expires = DateTime.Now.AddDays(1),
-            //     SigningCredentials = creds
-            // };
-
-            // JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-            // SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
 
             var token = new JwtSecurityToken(
                 claims: claims,

@@ -4,11 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using financing_api.Dtos.User;
-using web_api_netcore_project.Dtos.Character;
-using web_api_netcore_project.Dtos.Skill;
-using web_api_netcore_project.Dtos.Weapon;
+using financing_api.Dtos.Character;
+using financing_api.Dtos.Skill;
+using financing_api.Dtos.Weapon;
 
-namespace web_api_netcore_project
+namespace financing_api
 {
     public class AutoMapperProfile : Profile
     {

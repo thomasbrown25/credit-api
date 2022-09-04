@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using financing_api.Dtos.User;
 
-namespace web_api_netcore_project.Data
+namespace financing_api.Data
 {
     public interface IAuthService
     {

@@ -5,10 +5,10 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using web_api_netcore_project.Dtos.Character;
-using web_api_netcore_project.Services.CharacterService;
+using financing_api.Dtos.Character;
+using financing_api.Services.CharacterService;
 
-namespace web_api_netcore_project.Controllers
+namespace financing_api.Controllers
 {
     [Authorize]
     [ApiController]

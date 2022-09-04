@@ -4,11 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using web_api_netcore_project.Dtos.Character;
-using web_api_netcore_project.Dtos.Weapon;
-using web_api_netcore_project.Services.WeaponService;
+using financing_api.Dtos.Character;
+using financing_api.Dtos.Weapon;
+using financing_api.Services.WeaponService;
 
-namespace web_api_netcore_project.Controllers
+namespace financing_api.Controllers
 {
     [Authorize]
     [ApiController]

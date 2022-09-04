@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using web_api_netcore_project.Dtos.Skill;
-using web_api_netcore_project.Dtos.Weapon;
+using financing_api.Dtos.Skill;
+using financing_api.Dtos.Weapon;
 
-namespace web_api_netcore_project.Dtos.Character
+namespace financing_api.Dtos.Character
 {
     public class GetCharacterDto
     {

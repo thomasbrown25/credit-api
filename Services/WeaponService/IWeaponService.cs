@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using web_api_netcore_project.Dtos.Character;
-using web_api_netcore_project.Dtos.Weapon;
+using financing_api.Dtos.Character;
+using financing_api.Dtos.Weapon;
 
-namespace web_api_netcore_project.Services.WeaponService
+namespace financing_api.Services.WeaponService
 {
     public interface IWeaponService
     {

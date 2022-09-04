@@ -5,10 +5,10 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using web_api_netcore_project.Data;
-using web_api_netcore_project.Dtos.Character;
+using financing_api.Data;
+using financing_api.Dtos.Character;
 
-namespace web_api_netcore_project.Services.CharacterService
+namespace financing_api.Services.CharacterService
 {
     public class CharacterService : ICharacterService
     {

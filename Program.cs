@@ -1,4 +1,4 @@
-global using web_api_netcore_project.Models;
+global using financing_api.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Principal;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -7,9 +7,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
-using web_api_netcore_project.Data;
-using web_api_netcore_project.Services.CharacterService;
-using web_api_netcore_project.Services.WeaponService;
+using financing_api.Data;
+using financing_api.Services.CharacterService;
+using financing_api.Services.WeaponService;
+using financing_api.Services.PlaidService;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -42,8 +43,9 @@ services.AddSwaggerGen(c =>
 });
 services.AddSwaggerGenNewtonsoftSupport();
 services.AddAutoMapper(typeof(Program).Assembly);
-services.AddScoped<ICharacterService, CharacterService>();
 services.AddScoped<IAuthService, AuthService>();
+services.AddScoped<IPlaidService, PlaidService>();
+services.AddScoped<ICharacterService, CharacterService>();
 services.AddScoped<IWeaponService, WeaponService>();
 
 // Authentication

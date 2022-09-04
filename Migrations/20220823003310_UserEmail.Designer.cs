@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using web_api_netcore_project.Data;
+using financing_api.Data;
 
 #nullable disable
 
-namespace web_api_netcore_project.Migrations
+namespace financing_api.Migrations
 {
     [DbContext(typeof(DataContext))]
     [Migration("20220823003310_UserEmail")]
@@ -39,7 +39,7 @@ namespace web_api_netcore_project.Migrations
                     b.ToTable("CharacterSkill");
                 });
 
-            modelBuilder.Entity("web_api_netcore_project.Models.Character", b =>
+            modelBuilder.Entity("financing_api.Models.Character", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -76,7 +76,7 @@ namespace web_api_netcore_project.Migrations
                     b.ToTable("Characters");
                 });
 
-            modelBuilder.Entity("web_api_netcore_project.Models.Skill", b =>
+            modelBuilder.Entity("financing_api.Models.Skill", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -116,7 +116,7 @@ namespace web_api_netcore_project.Migrations
                         });
                 });
 
-            modelBuilder.Entity("web_api_netcore_project.Models.User", b =>
+            modelBuilder.Entity("financing_api.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -145,7 +145,7 @@ namespace web_api_netcore_project.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("web_api_netcore_project.Models.Weapon", b =>
+            modelBuilder.Entity("financing_api.Models.Weapon", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -173,46 +173,46 @@ namespace web_api_netcore_project.Migrations
 
             modelBuilder.Entity("CharacterSkill", b =>
                 {
-                    b.HasOne("web_api_netcore_project.Models.Character", null)
+                    b.HasOne("financing_api.Models.Character", null)
                         .WithMany()
                         .HasForeignKey("CharactersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("web_api_netcore_project.Models.Skill", null)
+                    b.HasOne("financing_api.Models.Skill", null)
                         .WithMany()
                         .HasForeignKey("SkillsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("web_api_netcore_project.Models.Character", b =>
+            modelBuilder.Entity("financing_api.Models.Character", b =>
                 {
-                    b.HasOne("web_api_netcore_project.Models.User", "User")
+                    b.HasOne("financing_api.Models.User", "User")
                         .WithMany("Characters")
                         .HasForeignKey("UserId");
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("web_api_netcore_project.Models.Weapon", b =>
+            modelBuilder.Entity("financing_api.Models.Weapon", b =>
                 {
-                    b.HasOne("web_api_netcore_project.Models.Character", "Character")
+                    b.HasOne("financing_api.Models.Character", "Character")
                         .WithOne("Weapon")
-                        .HasForeignKey("web_api_netcore_project.Models.Weapon", "CharacterId")
+                        .HasForeignKey("financing_api.Models.Weapon", "CharacterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Character");
                 });
 
-            modelBuilder.Entity("web_api_netcore_project.Models.Character", b =>
+            modelBuilder.Entity("financing_api.Models.Character", b =>
                 {
                     b.Navigation("Weapon")
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("web_api_netcore_project.Models.User", b =>
+            modelBuilder.Entity("financing_api.Models.User", b =>
                 {
                     b.Navigation("Characters");
                 });

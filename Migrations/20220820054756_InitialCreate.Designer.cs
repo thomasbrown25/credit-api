@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using web_api_netcore_project.Data;
+using financing_api.Data;
 
 #nullable disable
 
-namespace web_api_netcore_project.Migrations
+namespace financing_api.Migrations
 {
     [DbContext(typeof(DataContext))]
     [Migration("20220820054756_InitialCreate")]
@@ -23,7 +23,7 @@ namespace web_api_netcore_project.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("web_api_netcore_project.Models.Character", b =>
+            modelBuilder.Entity("financing_api.Models.Character", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

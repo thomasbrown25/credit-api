@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
-namespace web_api_netcore_project.Data
+namespace financing_api.Data
 {
     public class DataContext : DbContext
     {

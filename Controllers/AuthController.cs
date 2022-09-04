@@ -7,10 +7,10 @@ using financing_api.Services.AuthService;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using web_api_netcore_project.Data;
-using web_api_netcore_project.Dtos.User;
+using financing_api.Data;
+using financing_api.Dtos.User;
 
-namespace web_api_netcore_project.Controllers
+namespace financing_api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
@@ -55,7 +55,9 @@ namespace web_api_netcore_project.Controllers
         [HttpGet("load-user")]
         public async Task<ActionResult<ServiceResponse<LoadUserDto>>> LoadUser()
         {
+            // Get the email from the ClaimsPrincipal for the current user
             string email = User?.Identity?.Name;
+
             var response = await _authService.LoadUser(email);
 
             if (!response.Success)

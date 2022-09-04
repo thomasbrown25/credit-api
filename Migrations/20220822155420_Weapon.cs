@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace web_api_netcore_project.Migrations
+namespace financing_api.Migrations
 {
     public partial class Weapon : Migration
     {

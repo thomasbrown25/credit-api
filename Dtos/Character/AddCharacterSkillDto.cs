@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace web_api_netcore_project.Dtos.Character
+namespace financing_api.Dtos.Character
 {
     public class AddCharacterSkillDto
     {
