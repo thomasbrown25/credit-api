@@ -45,5 +45,19 @@ namespace financing_api.Controllers
             }
             return Ok(response);
         }
+
+        [Authorize]
+        [HttpGet("transactions")]
+        public async Task<ActionResult<ServiceResponse<string>>> GetTransactions()
+        {
+
+            var response = await _plaidService.GetTransactions();
+
+            if (!response.Success)
+            {   // need to set this to server error
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
     }
 }

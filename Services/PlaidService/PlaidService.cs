@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using financing_api.Data;
 using Acklann.Plaid;
-using Acklann.Plaid.Management;
 using System.Security.Claims;
 
 namespace financing_api.Services.PlaidService
@@ -48,7 +47,7 @@ namespace financing_api.Services.PlaidService
                     ClientUserId = user.Id.ToString()
                 };
 
-                var result = await client.CreateLinkToken(new CreateLinkTokenRequest()
+                var result = await client.CreateLinkToken(new Acklann.Plaid.Management.CreateLinkTokenRequest()
                 {
                     ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
                     Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
@@ -88,7 +87,7 @@ namespace financing_api.Services.PlaidService
             var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
 
             // Exchange publicToken for accessToken
-            var result = await client.ExchangeTokenAsync(new ExchangeTokenRequest()
+            var result = await client.ExchangeTokenAsync(new Acklann.Plaid.Management.ExchangeTokenRequest()
             {
                 ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
                 Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
@@ -105,9 +104,45 @@ namespace financing_api.Services.PlaidService
             return response;
         }
 
+        // Get Transactions from Plaid
+        public async Task<ServiceResponse<List<Acklann.Plaid.Entity.Transaction>>> GetTransactions()
+        {
+            var response = new ServiceResponse<List<Acklann.Plaid.Entity.Transaction>>();
+            response.Data = new List<Acklann.Plaid.Entity.Transaction>();
+
+            // Get user for accessToken
+            var user = GetCurrentUser();
+
+            if (user == null)
+            {
+                response.Success = false;
+                response.Message = "No user logged in";
+                return response;
+            }
+
+            // Create plaid client
+            var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
+
+            var result = await client.FetchTransactionsAsync(new Acklann.Plaid.Transactions.GetTransactionsRequest()
+            {
+                ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
+                Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                AccessToken = user.AccessToken,
+                StartDate = DateTime.Today.AddMonths(-1),
+                EndDate = DateTime.Today
+            });
+
+            foreach (var transaction in result.Transactions)
+            {
+                response.Data.Add(transaction);
+            }
+
+            return response;
+        }
 
 
-        // Utility Methods
+
+        // Utility Methods 
         private string GetUserEmail() => _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         private User GetCurrentUser()
@@ -131,5 +166,7 @@ namespace financing_api.Services.PlaidService
             }
 
         }
+
+
     }
 }

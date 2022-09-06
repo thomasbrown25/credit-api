@@ -14,7 +14,7 @@ namespace financing_api.Models
         public string Email { get; set; } = string.Empty;
         public byte[] PasswordHash { get; set; }
         public byte[] PasswordSalt { get; set; }
-        public string AccessToken { get; set; }
+        public string? AccessToken { get; set; }
         public List<Character>? Characters { get; set; }
 
     }
