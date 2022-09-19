@@ -15,6 +15,7 @@ using financing_api.Services.PlaidService;
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 var configuration = builder.Configuration;
+var allowMyOrigins = "AllowMyOrigins";
 
 // Add logging
 builder.Logging.ClearProviders();
@@ -70,11 +71,11 @@ services.AddTransient<IPrincipal>(provider => provider.GetService<IHttpContextAc
 
 services.AddCors(options =>
             {
-                options.AddPolicy("AllowFinancingAppClient",
+                options.AddPolicy(allowMyOrigins,
                   builder =>
                   {
                       builder
-                      .WithOrigins("http://localhost:3000", "https://financing-app.azurewebsites.net/")
+                      .WithOrigins("http://localhost:3000", "https://financing-app.azurewebsites.net")
                       .AllowAnyHeader()
                       .AllowAnyMethod();
                   });
@@ -89,7 +90,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowFinancingAppClient");
+app.UseCors(allowMyOrigins);
 
 app.UseHttpsRedirection();
 
