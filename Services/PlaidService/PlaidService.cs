@@ -113,10 +113,10 @@ namespace financing_api.Services.PlaidService
             // Get user for accessToken
             var user = GetCurrentUser();
 
-            if (user == null)
+            if (user == null || user.AccessToken == null)
             {
                 response.Success = false;
-                response.Message = "No user logged in";
+                response.Message = "User does not have access token";
                 return response;
             }
 
@@ -140,6 +140,40 @@ namespace financing_api.Services.PlaidService
             return response;
         }
 
+        public async Task<ServiceResponse<List<Acklann.Plaid.Entity.Account>>> GetAccountsBalance()
+        {
+            var response = new ServiceResponse<List<Acklann.Plaid.Entity.Account>>();
+            response.Data = new List<Acklann.Plaid.Entity.Account>();
+
+            // Get user for accessToken
+            var user = GetCurrentUser();
+
+            if (user == null || user.AccessToken == null)
+            {
+                response.Success = false;
+                response.Message = "User does not have access token";
+                return response;
+            }
+
+            // Create plaid client
+            var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
+
+            var result = await client.FetchAccountBalanceAsync(new Acklann.Plaid.Balance.GetBalanceRequest
+            {
+                ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
+                Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                AccessToken = user.AccessToken,
+            });
+
+            foreach (var account in result.Accounts)
+            {
+                int accountBalance;
+
+                response.Data.Add(account);
+            }
+
+            return response;
+        }
 
 
         // Utility Methods 

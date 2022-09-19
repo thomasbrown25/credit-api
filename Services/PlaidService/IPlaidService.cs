@@ -11,7 +11,9 @@ namespace financing_api.Services.PlaidService
         Task<ServiceResponse<string>> CreateLinkToken();
         // Exchanges the plaid public token for the access token
         Task<ServiceResponse<string>> PublicTokenExchange(string linkToken);
-        // Exchanges the plaid public token for the access token
+        // Get all transactions for the linked accounts
         Task<ServiceResponse<List<Acklann.Plaid.Entity.Transaction>>> GetTransactions();
+        // Get all linked accounts
+        Task<ServiceResponse<List<Acklann.Plaid.Entity.Account>>> GetAccountsBalance();
     }
 }
