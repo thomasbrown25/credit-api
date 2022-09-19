@@ -74,7 +74,7 @@ services.AddCors(options =>
                   builder =>
                   {
                       builder
-                      .WithOrigins("http://localhost:3000")
+                      .WithOrigins("http://localhost:3000", "https://financing-app.azurewebsites.net/")
                       .AllowAnyHeader()
                       .AllowAnyMethod();
                   });
