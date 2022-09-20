@@ -156,7 +156,7 @@ namespace financing_api.Data
 
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddDays(1),
+                expires: DateTime.Now.AddMinutes(5),
                 signingCredentials: creds
             );
 
@@ -167,13 +167,11 @@ namespace financing_api.Data
 
 
         // Utility Methods
-        private string GetUserEmail() => _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         private User GetCurrentUser()
         {
             try
             {
-                string email = GetUserEmail();
+                string email = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 if (email == null)
                     return null;
