@@ -21,11 +21,14 @@ var allowMyOrigins = "AllowMyOrigins";
 
 if (builder.Environment.IsDevelopment())
 {
+    Console.WriteLine("env is dev");
+
     var connectionString = builder.Configuration.GetConnectionString("AzureAppConfiguration");
     configBuilder.AddAzureAppConfiguration(connectionString);
 }
 else
 {
+    Console.WriteLine("env is prod");
     var endpoint = builder.Configuration.GetSection("AppConfigEndpoint").Value;
     var credentials = new ManagedIdentityCredential();
     configBuilder.AddAzureAppConfiguration(options =>
@@ -37,7 +40,6 @@ else
 var config = configBuilder.Build();
 
 // Add logging
-builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
 // Add services to the container.
@@ -85,12 +87,13 @@ services
             ValidateIssuer = false,
             ValidateAudience = false
         };
-    })
-    .AddGoogle(googleOptions =>
-    {
-        googleOptions.ClientId = configuration["AppSettings:Google:ClientId"];
-        googleOptions.ClientSecret = configuration["AppSettings:Google:ClientSecret"];
     });
+
+// .AddGoogle(googleOptions =>
+// {
+//     // googleOptions.ClientId = configuration["AppSettings:Google:ClientId"];
+//     // googleOptions.ClientSecret = configuration["AppSettings:Google:ClientSecret"];
+// });
 
 services.AddHttpContextAccessor();
 services.AddTransient<IPrincipal>(
