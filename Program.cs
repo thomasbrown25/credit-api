@@ -11,6 +11,7 @@ using financing_api.Data;
 using financing_api.Services.CharacterService;
 using financing_api.Services.WeaponService;
 using financing_api.Services.PlaidService;
+using Azure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 var configBuilder = new ConfigurationBuilder();
@@ -18,9 +19,21 @@ var services = builder.Services;
 var configuration = builder.Configuration;
 var allowMyOrigins = "AllowMyOrigins";
 
-configBuilder.AddAzureAppConfiguration(
-    builder.Configuration.GetConnectionString("AzureAppConfiguration")
-);
+if (builder.Environment.IsDevelopment())
+{
+    var connectionString = builder.Configuration.GetConnectionString("AzureAppConfiguration");
+    configBuilder.AddAzureAppConfiguration(connectionString);
+}
+else
+{
+    var endpoint = builder.Configuration.GetSection("AppConfigEndpoint").Value;
+    var credentials = new ManagedIdentityCredential();
+    configBuilder.AddAzureAppConfiguration(options =>
+    {
+        options.Connect(new Uri(endpoint), credentials);
+    });
+}
+
 var config = configBuilder.Build();
 
 // Add logging
