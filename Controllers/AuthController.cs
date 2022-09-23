@@ -27,9 +27,7 @@ namespace financing_api.Controllers
         )
         {
             _authService = authService;
-            _jwtGenerator = new JwtGenerator(
-                configuration.GetValue<string>("JwtPrivateSigningKey")
-            );
+            _jwtGenerator = new JwtGenerator(configuration["JwtPrivateSigningKey"]);
         }
 
         [HttpPost("register")]

@@ -16,10 +16,11 @@ using Azure.Identity;
 var builder = WebApplication.CreateBuilder(args);
 var configBuilder = new ConfigurationBuilder();
 var services = builder.Services;
-var configuration = builder.Configuration;
 var allowMyOrigins = "AllowMyOrigins";
 
-if (builder.Environment.IsDevelopment())
+builder.Logging.ClearProviders();
+
+if (builder.Environment.IsProduction())
 {
     Console.WriteLine("env is dev");
 
@@ -37,13 +38,15 @@ else
     });
 }
 
-var config = configBuilder.Build();
+var configuration = configBuilder.Build();
 
 // Add logging
 builder.Logging.AddConsole();
 
 // Add services to the container.
-services.AddDbContext<DataContext>(options => options.UseSqlServer(config["DbConnectionString"]));
+services.AddDbContext<DataContext>(
+    options => options.UseSqlServer(configuration["DbConnectionString"])
+);
 services.AddControllers();
 
 // Turn off claim mapping for Microsoft middleware
@@ -82,7 +85,7 @@ services
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(
-                System.Text.Encoding.UTF8.GetBytes(config["AppSettings:Key"])
+                System.Text.Encoding.UTF8.GetBytes(configuration["AppSettings:Key"])
             ),
             ValidateIssuer = false,
             ValidateAudience = false
