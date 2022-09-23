@@ -13,34 +13,43 @@ using financing_api.Services.WeaponService;
 using financing_api.Services.PlaidService;
 
 var builder = WebApplication.CreateBuilder(args);
+var configBuilder = new ConfigurationBuilder();
 var services = builder.Services;
 var configuration = builder.Configuration;
 var allowMyOrigins = "AllowMyOrigins";
+
+configBuilder.AddAzureAppConfiguration(
+    builder.Configuration.GetConnectionString("AzureAppConfiguration")
+);
+var config = configBuilder.Build();
 
 // Add logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
 // Add services to the container.
-services.AddDbContext<DataContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("MainConnection")));
+services.AddDbContext<DataContext>(options => options.UseSqlServer(config["DbConnectionString"]));
 services.AddControllers();
 
-// Turn off claim mapping for Microsoft middleware 
+// Turn off claim mapping for Microsoft middleware
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen(c =>
 {
-    c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
-    {
-        Description = "Standard Authorization header using the Bearer scheme, e.g. \"bearer {token} \"",
-        In = ParameterLocation.Header,
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey
-    });
+    c.AddSecurityDefinition(
+        "oauth2",
+        new OpenApiSecurityScheme
+        {
+            Description =
+                "Standard Authorization header using the Bearer scheme, e.g. \"bearer {token} \"",
+            In = ParameterLocation.Header,
+            Name = "Authorization",
+            Type = SecuritySchemeType.ApiKey
+        }
+    );
     c.OperationFilter<SecurityRequirementsOperationFilter>();
-
 });
 services.AddSwaggerGenNewtonsoftSupport();
 services.AddAutoMapper(typeof(Program).Assembly);
@@ -50,36 +59,44 @@ services.AddScoped<ICharacterService, CharacterService>();
 services.AddScoped<IWeaponService, WeaponService>();
 
 // Authentication
-services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration.GetSection("AppSettings:Key").Value)),
-        ValidateIssuer = false,
-        ValidateAudience = false
-    };
-}).AddGoogle(googleOptions =>
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                System.Text.Encoding.UTF8.GetBytes(config["AppSettings:Key"])
+            ),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    })
+    .AddGoogle(googleOptions =>
     {
         googleOptions.ClientId = configuration["AppSettings:Google:ClientId"];
         googleOptions.ClientSecret = configuration["AppSettings:Google:ClientSecret"];
     });
 
 services.AddHttpContextAccessor();
-services.AddTransient<IPrincipal>(provider => provider.GetService<IHttpContextAccessor>().HttpContext.User);
+services.AddTransient<IPrincipal>(
+    provider => provider.GetService<IHttpContextAccessor>().HttpContext.User
+);
 
 services.AddCors(options =>
-            {
-                options.AddPolicy(allowMyOrigins,
-                  builder =>
-                  {
-                      builder
-                      .WithOrigins("http://localhost:3000", "https://financing-app.azurewebsites.net")
-                      .AllowAnyHeader()
-                      .AllowAnyMethod();
-                  });
-            });
+{
+    options.AddPolicy(
+        allowMyOrigins,
+        builder =>
+        {
+            builder
+                .WithOrigins("http://localhost:3000", "https://financing-app.azurewebsites.net")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
+    );
+});
 
 var app = builder.Build();
 
