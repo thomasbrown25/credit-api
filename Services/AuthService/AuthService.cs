@@ -19,7 +19,12 @@ namespace financing_api.Data
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthService(DataContext context, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        public AuthService(
+            DataContext context,
+            IConfiguration configuration,
+            IMapper mapper,
+            IHttpContextAccessor httpContextAccessor
+        )
         {
             _context = context;
             _configuration = configuration;
@@ -33,7 +38,6 @@ namespace financing_api.Data
 
             if (await UserExists(user.Email))
             {
-                response.Success = false;
                 response.Message = "A user with that email already exists.";
                 return response;
             }
@@ -57,7 +61,9 @@ namespace financing_api.Data
 
             try
             {
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower().Equals(email.ToLower()));
+                var user = await _context.Users.FirstOrDefaultAsync(
+                    u => u.Email.ToLower().Equals(email.ToLower())
+                );
 
                 if (user == null)
                 {
@@ -76,7 +82,6 @@ namespace financing_api.Data
             }
             catch (Exception ex)
             {
-
                 throw;
             }
             return response;
@@ -124,7 +129,11 @@ namespace financing_api.Data
             return false;
         }
 
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        private void CreatePasswordHash(
+            string password,
+            out byte[] passwordHash,
+            out byte[] passwordSalt
+        )
         {
             using (var hmac = new System.Security.Cryptography.HMACSHA512())
             {
@@ -150,9 +159,16 @@ namespace financing_api.Data
                 new Claim(ClaimTypes.Name, user.Email)
             };
 
-            SymmetricSecurityKey key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Key").Value));
+            SymmetricSecurityKey key = new SymmetricSecurityKey(
+                System.Text.Encoding.UTF8.GetBytes(
+                    _configuration.GetSection("AppSettings:Key").Value
+                )
+            );
 
-            SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+            SigningCredentials creds = new SigningCredentials(
+                key,
+                SecurityAlgorithms.HmacSha512Signature
+            );
 
             var token = new JwtSecurityToken(
                 claims: claims,
@@ -165,19 +181,22 @@ namespace financing_api.Data
             return jwt;
         }
 
-
         // Utility Methods
         private User GetCurrentUser()
         {
             try
             {
-                string email = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                string email = _httpContextAccessor.HttpContext.User.FindFirstValue(
+                    ClaimTypes.NameIdentifier
+                );
 
                 if (email == null)
                     return null;
 
                 // Get current user from sql db
-                User user = _context.Users.FirstOrDefault(u => u.Email.ToLower().Equals(email.ToLower()));
+                User user = _context.Users.FirstOrDefault(
+                    u => u.Email.ToLower().Equals(email.ToLower())
+                );
 
                 return user;
             }
@@ -187,6 +206,5 @@ namespace financing_api.Data
                 return null;
             }
         }
-
     }
 }
