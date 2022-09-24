@@ -22,7 +22,7 @@ var allowMyOrigins = "AllowMyOrigins";
 
 builder.Logging.ClearProviders();
 
-if (builder.Environment.IsProduction())
+if (builder.Environment.IsDevelopment())
 {
     Console.WriteLine("env is dev");
 
