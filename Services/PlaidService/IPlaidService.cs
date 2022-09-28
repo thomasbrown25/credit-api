@@ -9,11 +9,17 @@ namespace financing_api.Services.PlaidService
     {
         // Creates a link token in Plaid and returns the link token
         Task<ServiceResponse<string>> CreateLinkToken();
+
         // Exchanges the plaid public token for the access token
         Task<ServiceResponse<string>> PublicTokenExchange(string linkToken);
+
         // Get all transactions for the linked accounts
         Task<ServiceResponse<List<Acklann.Plaid.Entity.Transaction>>> GetTransactions();
+
         // Get all linked accounts
         Task<ServiceResponse<List<Acklann.Plaid.Entity.Account>>> GetAccountsBalance();
+
+        // Get the current spend for the month
+        Task<ServiceResponse<decimal>> GetCurrentSpendForMonth();
     }
 }

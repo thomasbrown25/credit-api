@@ -14,6 +14,7 @@ using financing_api.Services.CharacterService;
 using financing_api.Services.WeaponService;
 using financing_api.Services.PlaidService;
 using Azure.Identity;
+using financing_api;
 
 var builder = WebApplication.CreateBuilder(args);
 var configBuilder = new ConfigurationBuilder();
@@ -32,6 +33,7 @@ if (builder.Environment.IsDevelopment())
 else
 {
     Console.WriteLine("env is prod");
+
     var endpoint = builder.Configuration.GetSection("AppConfigEndpoint").Value;
     Console.WriteLine("Got the endpoint: " + endpoint);
     var credentials = new ManagedIdentityCredential();

@@ -172,7 +172,9 @@ namespace financing_api.Data
 
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(5),
+                expires: DateTime.Now.AddMinutes(
+                    Double.Parse(_configuration.GetSection("AppSettings:JWTTokenExpiration").Value)
+                ),
                 signingCredentials: creds
             );
 

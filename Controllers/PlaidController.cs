@@ -26,7 +26,7 @@ namespace financing_api.Controllers
             var response = await _plaidService.CreateLinkToken();
 
             if (!response.Success)
-            {   // need to set this to server error
+            { // need to set this to server error
                 return BadRequest(response);
             }
             return Ok(response);
@@ -34,13 +34,14 @@ namespace financing_api.Controllers
 
         [Authorize]
         [HttpPost("public-token-exchange")] // Exchanges the public token for the access token
-        public async Task<ActionResult<ServiceResponse<string>>> PublicTokenExchange([FromBody] string publicToken)
+        public async Task<ActionResult<ServiceResponse<string>>> PublicTokenExchange(
+            [FromBody] string publicToken
+        )
         {
-
             var response = await _plaidService.PublicTokenExchange(publicToken);
 
             if (!response.Success)
-            {   // need to set this to server error
+            { // need to set this to server error
                 return BadRequest(response);
             }
             return Ok(response);
@@ -50,11 +51,23 @@ namespace financing_api.Controllers
         [HttpGet("transactions")] // Gets all transactions for all accounts
         public async Task<ActionResult<ServiceResponse<string>>> GetTransactions()
         {
-
             var response = await _plaidService.GetTransactions();
 
             if (!response.Success)
-            {   // need to set this to server error
+            { // need to set this to server error
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+
+        [Authorize]
+        [HttpGet("transactions/current-spend-month")] // Gets all transactions for all accounts
+        public async Task<ActionResult<ServiceResponse<decimal>>> GetCurrentSpendForMonth()
+        {
+            var response = await _plaidService.GetCurrentSpendForMonth();
+
+            if (!response.Success)
+            { // need to set this to server error
                 return BadRequest(response);
             }
             return Ok(response);

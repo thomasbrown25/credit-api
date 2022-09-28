@@ -15,7 +15,11 @@ namespace financing_api.Services.PlaidService
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public PlaidService(DataContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+        public PlaidService(
+            DataContext context,
+            IConfiguration configuration,
+            IHttpContextAccessor httpContextAccessor
+        )
         {
             _context = context;
             _configuration = configuration;
@@ -41,22 +45,24 @@ namespace financing_api.Services.PlaidService
                 // Create plaid client
                 var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
 
-                // Create plaid user with user id 
+                // Create plaid user with user id
                 var plaidUser = new Acklann.Plaid.Management.CreateLinkTokenRequest.UserInfo()
                 {
                     ClientUserId = user.Id.ToString()
                 };
 
-                var result = await client.CreateLinkToken(new Acklann.Plaid.Management.CreateLinkTokenRequest()
-                {
-                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
-                    ClientName = "Financing Api",
-                    Language = "en",
-                    CountryCodes = new string[] { "US" },
-                    User = plaidUser,
-                    Products = new string[] { "auth" }
-                });
+                var result = await client.CreateLinkToken(
+                    new Acklann.Plaid.Management.CreateLinkTokenRequest()
+                    {
+                        ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
+                        Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                        ClientName = "Financing Api",
+                        Language = "en",
+                        CountryCodes = new string[] { "US" },
+                        User = plaidUser,
+                        Products = new string[] { "auth" }
+                    }
+                );
 
                 response.Data = result.LinkToken;
 
@@ -69,7 +75,6 @@ namespace financing_api.Services.PlaidService
                 response.Exception = ex.InnerException;
             }
             return response;
-
         }
 
         public async Task<ServiceResponse<string>> PublicTokenExchange(string publicToken)
@@ -87,12 +92,14 @@ namespace financing_api.Services.PlaidService
             var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
 
             // Exchange publicToken for accessToken
-            var result = await client.ExchangeTokenAsync(new Acklann.Plaid.Management.ExchangeTokenRequest()
-            {
-                ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
-                PublicToken = publicToken
-            });
+            var result = await client.ExchangeTokenAsync(
+                new Acklann.Plaid.Management.ExchangeTokenRequest()
+                {
+                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
+                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                    PublicToken = publicToken
+                }
+            );
 
             // Save accessToken to SQL DB
             var user = GetCurrentUser();
@@ -123,14 +130,16 @@ namespace financing_api.Services.PlaidService
             // Create plaid client
             var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
 
-            var result = await client.FetchTransactionsAsync(new Acklann.Plaid.Transactions.GetTransactionsRequest()
-            {
-                ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
-                AccessToken = user.AccessToken,
-                StartDate = DateTime.Today.AddMonths(-1),
-                EndDate = DateTime.Today
-            });
+            var result = await client.FetchTransactionsAsync(
+                new Acklann.Plaid.Transactions.GetTransactionsRequest()
+                {
+                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
+                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                    AccessToken = user.AccessToken,
+                    StartDate = DateTime.Today.AddMonths(-1),
+                    EndDate = DateTime.Today
+                }
+            );
 
             foreach (var transaction in result.Transactions)
             {
@@ -139,6 +148,44 @@ namespace financing_api.Services.PlaidService
 
             return response;
         }
+
+        // Get recurring transactions
+        // public async Task<ServiceResponse<decimal>> GetRecurringTransactions()
+        // {
+        //     var response = new ServiceResponse<List<Acklann.Plaid.Entity.Transaction>>();
+        //     response.Data = new List<Acklann.Plaid.Entity.Transaction>();
+
+        //     // Get user for accessToken
+        //     var user = GetCurrentUser();
+
+        //     if (user == null || user.AccessToken == null)
+        //     {
+        //         response.Success = false;
+        //         response.Message = "User does not have access token";
+        //         //return response;
+        //     }
+
+        //     // Create plaid client
+        //     var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
+
+        //     var result = await client.FetchTransactionsAsync(
+        //         new Acklann.Plaid.()
+        //         {
+        //             ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
+        //             Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+        //             AccessToken = user.AccessToken,
+        //             StartDate = DateTime.Today.AddMonths(-1),
+        //             EndDate = DateTime.Today
+        //         }
+        //     );
+
+        //     foreach (var transaction in result.Transactions)
+        //     {
+        //         response.Data.Add(transaction);
+        //     }
+
+        //     return response;
+        // }
 
         public async Task<ServiceResponse<List<Acklann.Plaid.Entity.Account>>> GetAccountsBalance()
         {
@@ -158,12 +205,14 @@ namespace financing_api.Services.PlaidService
             // Create plaid client
             var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
 
-            var result = await client.FetchAccountBalanceAsync(new Acklann.Plaid.Balance.GetBalanceRequest
-            {
-                ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
-                AccessToken = user.AccessToken,
-            });
+            var result = await client.FetchAccountBalanceAsync(
+                new Acklann.Plaid.Balance.GetBalanceRequest
+                {
+                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
+                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                    AccessToken = user.AccessToken,
+                }
+            );
 
             foreach (var account in result.Accounts)
             {
@@ -175,9 +224,45 @@ namespace financing_api.Services.PlaidService
             return response;
         }
 
+        public async Task<ServiceResponse<decimal>> GetCurrentSpendForMonth()
+        {
+            var response = new ServiceResponse<decimal>();
 
-        // Utility Methods 
-        private string GetUserEmail() => _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // Get user for accessToken
+            var user = GetCurrentUser();
+
+            if (user == null || user.AccessToken == null)
+            {
+                response.Success = false;
+                response.Message = "User does not have access token";
+                return response;
+            }
+
+            // Create plaid client
+            var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
+
+            var result = await client.FetchTransactionsAsync(
+                new Acklann.Plaid.Transactions.GetTransactionsRequest()
+                {
+                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
+                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                    AccessToken = user.AccessToken,
+                    StartDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1), // gets the first day of the month
+                    EndDate = DateTime.Today
+                }
+            );
+
+            foreach (var transaction in result.Transactions)
+            {
+                response.Data += transaction.Amount;
+            }
+
+            return response;
+        }
+
+        // Utility Methods
+        private string GetUserEmail() =>
+            _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         private User GetCurrentUser()
         {
@@ -189,7 +274,9 @@ namespace financing_api.Services.PlaidService
                     return null;
 
                 // Get current user from sql db
-                User user = _context.Users.FirstOrDefault(u => u.Email.ToLower().Equals(email.ToLower()));
+                User user = _context.Users.FirstOrDefault(
+                    u => u.Email.ToLower().Equals(email.ToLower())
+                );
 
                 return user;
             }
@@ -198,9 +285,6 @@ namespace financing_api.Services.PlaidService
                 Console.WriteLine(ex.Message);
                 return null;
             }
-
         }
-
-
     }
 }
