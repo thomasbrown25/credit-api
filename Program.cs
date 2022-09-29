@@ -48,6 +48,7 @@ var configuration = configBuilder.Build();
 
 // Add logging
 builder.Logging.AddConsole();
+builder.Logging.AddEventSourceLogger();
 
 // Add services to the container.
 services.AddDbContext<DataContext>(
