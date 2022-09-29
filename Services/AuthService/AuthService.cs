@@ -83,6 +83,7 @@ namespace financing_api.Data
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 throw;
             }
             return response;
