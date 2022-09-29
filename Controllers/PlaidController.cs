@@ -48,32 +48,6 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
-        [HttpGet("transactions")] // Gets all transactions for all accounts
-        public async Task<ActionResult<ServiceResponse<string>>> GetTransactions()
-        {
-            var response = await _plaidService.GetTransactions();
-
-            if (!response.Success)
-            { // need to set this to server error
-                return BadRequest(response);
-            }
-            return Ok(response);
-        }
-
-        [Authorize]
-        [HttpGet("transactions/current-spend-month")] // Gets all transactions for all accounts
-        public async Task<ActionResult<ServiceResponse<decimal>>> GetCurrentSpendForMonth()
-        {
-            var response = await _plaidService.GetCurrentSpendForMonth();
-
-            if (!response.Success)
-            { // need to set this to server error
-                return BadRequest(response);
-            }
-            return Ok(response);
-        }
-
-        [Authorize]
         [HttpGet("accounts")] // Get all accounts
         public async Task<ActionResult<ServiceResponse<string>>> GetAccountsBalance()
         {

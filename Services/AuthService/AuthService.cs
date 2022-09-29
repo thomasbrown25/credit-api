@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using financing_api.Dtos.User;
+using financing_api.Utils;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -92,7 +93,7 @@ namespace financing_api.Data
             ServiceResponse<LoadUserDto> response = new ServiceResponse<LoadUserDto>();
             try
             {
-                User user = GetCurrentUser();
+                User user = UtilityMethods.GetCurrentUser(_context, _httpContextAccessor);
 
                 if (user == null)
                 {
@@ -181,32 +182,6 @@ namespace financing_api.Data
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
 
             return jwt;
-        }
-
-        // Utility Methods
-        private User GetCurrentUser()
-        {
-            try
-            {
-                string email = _httpContextAccessor.HttpContext.User.FindFirstValue(
-                    ClaimTypes.NameIdentifier
-                );
-
-                if (email == null)
-                    return null;
-
-                // Get current user from sql db
-                User user = _context.Users.FirstOrDefault(
-                    u => u.Email.ToLower().Equals(email.ToLower())
-                );
-
-                return user;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return null;
-            }
         }
     }
 }

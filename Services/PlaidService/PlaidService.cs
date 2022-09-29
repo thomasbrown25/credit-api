@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using financing_api.Data;
 using Acklann.Plaid;
 using System.Security.Claims;
+using financing_api.Utils;
 
 namespace financing_api.Services.PlaidService
 {
@@ -33,7 +34,7 @@ namespace financing_api.Services.PlaidService
             try
             {
                 // Get current user from sql db
-                User user = GetCurrentUser();
+                User user = UtilityMethods.GetCurrentUser(_context, _httpContextAccessor);
 
                 if (user == null)
                 {
@@ -102,49 +103,11 @@ namespace financing_api.Services.PlaidService
             );
 
             // Save accessToken to SQL DB
-            var user = GetCurrentUser();
+            var user = UtilityMethods.GetCurrentUser(_context, _httpContextAccessor);
             user.AccessToken = result.AccessToken;
             await _context.SaveChangesAsync();
 
             response.Data = result.AccessToken;
-
-            return response;
-        }
-
-        // Get Transactions from Plaid
-        public async Task<ServiceResponse<List<Acklann.Plaid.Entity.Transaction>>> GetTransactions()
-        {
-            var response = new ServiceResponse<List<Acklann.Plaid.Entity.Transaction>>();
-            response.Data = new List<Acklann.Plaid.Entity.Transaction>();
-
-            // Get user for accessToken
-            var user = GetCurrentUser();
-
-            if (user == null || user.AccessToken == null)
-            {
-                response.Success = false;
-                response.Message = "User does not have access token";
-                return response;
-            }
-
-            // Create plaid client
-            var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
-
-            var result = await client.FetchTransactionsAsync(
-                new Acklann.Plaid.Transactions.GetTransactionsRequest()
-                {
-                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
-                    AccessToken = user.AccessToken,
-                    StartDate = DateTime.Today.AddMonths(-1),
-                    EndDate = DateTime.Today
-                }
-            );
-
-            foreach (var transaction in result.Transactions)
-            {
-                response.Data.Add(transaction);
-            }
 
             return response;
         }
@@ -156,7 +119,7 @@ namespace financing_api.Services.PlaidService
         //     response.Data = new List<Acklann.Plaid.Entity.Transaction>();
 
         //     // Get user for accessToken
-        //     var user = GetCurrentUser();
+        //     var user = GetCurrentUser(_context, _httpContextAccessor);
 
         //     if (user == null || user.AccessToken == null)
         //     {
@@ -193,7 +156,7 @@ namespace financing_api.Services.PlaidService
             response.Data = new List<Acklann.Plaid.Entity.Account>();
 
             // Get user for accessToken
-            var user = GetCurrentUser();
+            var user = UtilityMethods.GetCurrentUser(_context, _httpContextAccessor);
 
             if (user == null || user.AccessToken == null)
             {
@@ -222,69 +185,6 @@ namespace financing_api.Services.PlaidService
             }
 
             return response;
-        }
-
-        public async Task<ServiceResponse<decimal>> GetCurrentSpendForMonth()
-        {
-            var response = new ServiceResponse<decimal>();
-
-            // Get user for accessToken
-            var user = GetCurrentUser();
-
-            if (user == null || user.AccessToken == null)
-            {
-                response.Success = false;
-                response.Message = "User does not have access token";
-                return response;
-            }
-
-            // Create plaid client
-            var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
-
-            var result = await client.FetchTransactionsAsync(
-                new Acklann.Plaid.Transactions.GetTransactionsRequest()
-                {
-                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
-                    AccessToken = user.AccessToken,
-                    StartDate = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1), // gets the first day of the month
-                    EndDate = DateTime.Today
-                }
-            );
-
-            foreach (var transaction in result.Transactions)
-            {
-                response.Data += transaction.Amount;
-            }
-
-            return response;
-        }
-
-        // Utility Methods
-        private string GetUserEmail() =>
-            _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        private User GetCurrentUser()
-        {
-            try
-            {
-                string email = GetUserEmail();
-
-                if (email == null)
-                    return null;
-
-                // Get current user from sql db
-                User user = _context.Users.FirstOrDefault(
-                    u => u.Email.ToLower().Equals(email.ToLower())
-                );
-
-                return user;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return null;
-            }
         }
     }
 }
