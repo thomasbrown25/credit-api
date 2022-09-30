@@ -37,22 +37,32 @@ namespace financing_api.Data
         {
             ServiceResponse<string> response = new ServiceResponse<string>();
 
-            if (await UserExists(user.Email))
+            try
             {
-                response.Message = "A user with that email already exists.";
-                return response;
+                if (await UserExists(user.Email))
+                {
+                    response.Message = "A user with that email already exists.";
+                    return response;
+                }
+
+                CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
+
+                user.PasswordHash = passwordHash;
+                user.PasswordSalt = passwordSalt;
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                // after we save user, we create and return the jwt token
+                response.Data = CreateToken(user);
+            }
+            catch (Exception ex)
+            {
+                response.Data = ex.Message;
+                Console.WriteLine(ex.Message);
+                throw;
             }
 
-            CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
-
-            user.PasswordHash = passwordHash;
-            user.PasswordSalt = passwordSalt;
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            // after we save user, we create and return the jwt token
-            response.Data = CreateToken(user);
             return response;
         }
 
@@ -83,6 +93,7 @@ namespace financing_api.Data
             }
             catch (Exception ex)
             {
+                response.Data = ex.Message;
                 Console.WriteLine(ex.Message);
                 throw;
             }
@@ -92,6 +103,7 @@ namespace financing_api.Data
         public async Task<ServiceResponse<LoadUserDto>> LoadUser()
         {
             ServiceResponse<LoadUserDto> response = new ServiceResponse<LoadUserDto>();
+
             try
             {
                 User user = UtilityMethods.GetCurrentUser(_context, _httpContextAccessor);
@@ -107,6 +119,7 @@ namespace financing_api.Data
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 response.Success = false;
                 response.Message = ex.Message;
                 response.Exception = ex.InnerException;
