@@ -16,6 +16,7 @@ using financing_api.Services.PlaidService;
 using Azure.Identity;
 using financing_api;
 using financing_api.Services.TransactionsService;
+using financing_api.Services.AccountService;
 
 var builder = WebApplication.CreateBuilder(args);
 var configBuilder = new ConfigurationBuilder();
@@ -83,6 +84,7 @@ services.AddScoped<IPlaidService, PlaidService>();
 services.AddScoped<ICharacterService, CharacterService>();
 services.AddScoped<IWeaponService, WeaponService>();
 services.AddScoped<ITransactionsService, TransactionsService>();
+services.AddScoped<IAccountService, AccountService>();
 
 // Authentication
 services

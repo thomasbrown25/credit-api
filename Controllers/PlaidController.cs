@@ -46,18 +46,5 @@ namespace financing_api.Controllers
             }
             return Ok(response);
         }
-
-        [Authorize]
-        [HttpGet("accounts")] // Get all accounts
-        public async Task<ActionResult<ServiceResponse<string>>> GetAccountsBalance()
-        {
-            var response = await _plaidService.GetAccountsBalance();
-
-            if (!response.Success)
-            { // need to set this to server error
-                return BadRequest(response);
-            }
-            return Ok(response);
-        }
     }
 }

@@ -45,7 +45,7 @@ namespace financing_api.Services.TransactionsService
             }
 
             // Create plaid client
-            var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
+            var client = new PlaidClient(Acklann.Plaid.Environment.Development);
 
             var result = await client.FetchTransactionsAsync(
                 new Acklann.Plaid.Transactions.GetTransactionsRequest()
@@ -55,6 +55,50 @@ namespace financing_api.Services.TransactionsService
                     AccessToken = user.AccessToken,
                     StartDate = DateTime.Today.AddMonths(-1),
                     EndDate = DateTime.Today
+                }
+            );
+
+            foreach (var transaction in result.Transactions)
+            {
+                response.Data.Add(transaction);
+            }
+
+            return response;
+        }
+
+        // Get Recent Transactions
+        public async Task<
+            ServiceResponse<List<Acklann.Plaid.Entity.Transaction>>
+        > GetRecentTransactions(uint count)
+        {
+            var response = new ServiceResponse<List<Acklann.Plaid.Entity.Transaction>>();
+            response.Data = new List<Acklann.Plaid.Entity.Transaction>();
+
+            // Get user for accessToken
+            var user = UtilityMethods.GetCurrentUser(_context, _httpContextAccessor);
+
+            if (user == null || user.AccessToken == null)
+            {
+                response.Success = false;
+                response.Message = "User does not have access token";
+                return response;
+            }
+
+            var options = new Acklann.Plaid.Transactions.GetTransactionsRequest.PaginationOptions();
+            options.Total = 15;
+
+            // Create plaid client
+            var client = new PlaidClient(Acklann.Plaid.Environment.Development);
+
+            var result = await client.FetchTransactionsAsync(
+                new Acklann.Plaid.Transactions.GetTransactionsRequest()
+                {
+                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
+                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                    AccessToken = user.AccessToken,
+                    StartDate = DateTime.Today.AddMonths(-1),
+                    EndDate = DateTime.Today,
+                    Options = options
                 }
             );
 
@@ -83,7 +127,7 @@ namespace financing_api.Services.TransactionsService
             }
 
             // Create plaid client
-            var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
+            var client = new PlaidClient(Acklann.Plaid.Environment.Development);
 
             var result = await client.FetchTransactionsAsync(
                 new Acklann.Plaid.Transactions.GetTransactionsRequest()
@@ -109,7 +153,11 @@ namespace financing_api.Services.TransactionsService
                 transactionDto.Categories = transaction.Categories;
 
                 response.Data.Transactions.Add(transactionDto);
-                response.Data.CurrentSpendAmount += transaction.Amount;
+
+                if (transaction.Amount > 0)
+                {
+                    response.Data.CurrentSpendAmount += transaction.Amount;
+                }
             }
 
             return response;
@@ -131,7 +179,7 @@ namespace financing_api.Services.TransactionsService
             }
 
             // Create plaid client
-            var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
+            var client = new PlaidClient(Acklann.Plaid.Environment.Development);
 
             var result = await client.FetchTransactionsAsync(
                 new Acklann.Plaid.Transactions.GetTransactionsRequest()
@@ -147,6 +195,44 @@ namespace financing_api.Services.TransactionsService
             foreach (var transaction in result.Transactions)
             {
                 response.Data += transaction.Amount;
+            }
+
+            return response;
+        }
+
+         // Get Recurring Transactions
+        public async Task<ServiceResponse<List<Acklann.Plaid.Entity.Transaction>>> GetRecurringTransactions()
+        {
+            var response = new ServiceResponse<List<Acklann.Plaid.Entity.Transaction>>();
+            response.Data = new List<Acklann.Plaid.Entity.Transaction>();
+
+            // Get user for accessToken
+            var user = UtilityMethods.GetCurrentUser(_context, _httpContextAccessor);
+
+            if (user == null || user.AccessToken == null)
+            {
+                response.Success = false;
+                response.Message = "User does not have access token";
+                return response;
+            }
+
+            // Create plaid client
+            var client = new PlaidClient(Acklann.Plaid.Environment.Development);
+
+            var result = await client.FetchTransactionsAsync(
+                new Acklann.Plaid.Transactions.GetTransactionsRequest()
+                {
+                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
+                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                    AccessToken = user.AccessToken,
+                    StartDate = DateTime.Today.AddMonths(-1),
+                    EndDate = DateTime.Today
+                }
+            );
+
+            foreach (var transaction in result.Transactions)
+            {
+                response.Data.Add(transaction);
             }
 
             return response;

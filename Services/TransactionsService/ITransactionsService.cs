@@ -11,6 +11,11 @@ namespace financing_api.Services.TransactionsService
         // Get all transactions for the linked accounts
         Task<ServiceResponse<List<Acklann.Plaid.Entity.Transaction>>> GetTransactions();
 
+        // Get recent transactions with configured count amount
+        Task<ServiceResponse<List<Acklann.Plaid.Entity.Transaction>>> GetRecentTransactions(
+            uint count
+        );
+
         // Get categories
         Task<ServiceResponse<GetTransactionsDto>> GetCurrentMonthTransactions();
 

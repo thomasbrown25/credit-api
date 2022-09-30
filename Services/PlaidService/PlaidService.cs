@@ -44,7 +44,7 @@ namespace financing_api.Services.PlaidService
                 }
 
                 // Create plaid client
-                var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
+                var client = new PlaidClient(Acklann.Plaid.Environment.Development);
 
                 // Create plaid user with user id
                 var plaidUser = new Acklann.Plaid.Management.CreateLinkTokenRequest.UserInfo()
@@ -90,7 +90,7 @@ namespace financing_api.Services.PlaidService
             }
 
             // Create plaid client
-            var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
+            var client = new PlaidClient(Acklann.Plaid.Environment.Development);
 
             // Exchange publicToken for accessToken
             var result = await client.ExchangeTokenAsync(
@@ -129,7 +129,7 @@ namespace financing_api.Services.PlaidService
         //     }
 
         //     // Create plaid client
-        //     var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
+        //     var client = new PlaidClient(Acklann.Plaid.Environment.Development);
 
         //     var result = await client.FetchTransactionsAsync(
         //         new Acklann.Plaid.()
@@ -149,42 +149,5 @@ namespace financing_api.Services.PlaidService
 
         //     return response;
         // }
-
-        public async Task<ServiceResponse<List<Acklann.Plaid.Entity.Account>>> GetAccountsBalance()
-        {
-            var response = new ServiceResponse<List<Acklann.Plaid.Entity.Account>>();
-            response.Data = new List<Acklann.Plaid.Entity.Account>();
-
-            // Get user for accessToken
-            var user = UtilityMethods.GetCurrentUser(_context, _httpContextAccessor);
-
-            if (user == null || user.AccessToken == null)
-            {
-                response.Success = false;
-                response.Message = "User does not have access token";
-                return response;
-            }
-
-            // Create plaid client
-            var client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
-
-            var result = await client.FetchAccountBalanceAsync(
-                new Acklann.Plaid.Balance.GetBalanceRequest
-                {
-                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
-                    AccessToken = user.AccessToken,
-                }
-            );
-
-            foreach (var account in result.Accounts)
-            {
-                int accountBalance;
-
-                response.Data.Add(account);
-            }
-
-            return response;
-        }
     }
 }

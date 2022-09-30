@@ -36,6 +36,19 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
+        [HttpGet("recent")]
+        public async Task<ActionResult<ServiceResponse<string>>> GetRecentTransactions(uint count)
+        {
+            var response = await _transactionsService.GetRecentTransactions(count);
+
+            if (!response.Success)
+            { // need to set this to server error
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+
+        [Authorize]
         [HttpGet("current-month")]
         public async Task<
             ActionResult<ServiceResponse<GetTransactionsDto>>
