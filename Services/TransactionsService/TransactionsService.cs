@@ -8,6 +8,7 @@ using Acklann.Plaid;
 using System.Security.Claims;
 using financing_api.Utils;
 using financing_api.Dtos.Transaction;
+using financing_api.Logging;
 
 namespace financing_api.Services.TransactionsService
 {
@@ -58,6 +59,9 @@ namespace financing_api.Services.TransactionsService
                 }
             );
 
+
+
+
             foreach (var transaction in result.Transactions)
             {
                 response.Data.Add(transaction);
@@ -101,6 +105,15 @@ namespace financing_api.Services.TransactionsService
                     Options = options
                 }
             );
+
+            if (result == null)
+            {
+                Console.WriteLine("Plaid API result is null");
+            }
+            else
+            {
+                Console.WriteLine(result);
+            }
 
             foreach (var transaction in result.Transactions)
             {
@@ -200,7 +213,7 @@ namespace financing_api.Services.TransactionsService
             return response;
         }
 
-         // Get Recurring Transactions
+        // Get Recurring Transactions
         public async Task<ServiceResponse<List<Acklann.Plaid.Entity.Transaction>>> GetRecurringTransactions()
         {
             var response = new ServiceResponse<List<Acklann.Plaid.Entity.Transaction>>();
