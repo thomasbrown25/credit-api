@@ -17,6 +17,9 @@ using Azure.Identity;
 using financing_api;
 using financing_api.Services.TransactionsService;
 using financing_api.Services.AccountService;
+using Going.Plaid;
+using financing_api.Shared;
+using Microsoft.Extensions.Configuration.Yaml;
 
 var builder = WebApplication.CreateBuilder(args);
 var configBuilder = new ConfigurationBuilder();
@@ -24,6 +27,8 @@ var services = builder.Services;
 var allowMyOrigins = "AllowMyOrigins";
 
 builder.Logging.ClearProviders();
+
+
 
 if (builder.Environment.IsDevelopment())
 {
@@ -45,7 +50,20 @@ else
     });
 }
 
+// You can put your plaid secrets here. But really you can put them
+// configBuilder.AddYamlFile("secrets.yaml", optional: true);
+
 var configuration = configBuilder.Build();
+
+
+// Add Going.Plaid services
+services.AddHttpClient();
+// services.Configure<PlaidCredentials>(configuration.GetSection(PlaidOptions.SectionKey));
+// services.Configure<PlaidOptions>(configuration.GetSection(PlaidOptions.SectionKey));
+services.AddSingleton<PlaidClient>();
+// services.AddSingleton<ContextContainer>(new ContextContainer() { RunningOnServer = true });
+
+var client = new PlaidClient(Going.Plaid.Environment.Development);
 
 // Add logging
 builder.Logging.AddConsole();

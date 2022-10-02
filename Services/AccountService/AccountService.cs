@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acklann.Plaid;
 using financing_api.Data;
 using financing_api.Dtos.Account;
 using financing_api.Utils;
+using Going.Plaid;
 
 namespace financing_api.Services.AccountService
 {
@@ -33,7 +33,7 @@ namespace financing_api.Services.AccountService
             response.Data.Accounts = new List<AccountDto>();
 
             // Get user for accessToken
-            var user = UtilityMethods.GetCurrentUser(_context, _httpContextAccessor);
+            var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
             if (user == null || user.AccessToken == null)
             {
@@ -42,36 +42,36 @@ namespace financing_api.Services.AccountService
                 return response;
             }
 
-            // Create plaid client
-            var client = new PlaidClient(Acklann.Plaid.Environment.Development);
+            var request = new Going.Plaid.Accounts.AccountsBalanceGetRequest()
+            {
+                ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
+                Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                AccessToken = user.AccessToken,
+            };
 
-            var result = await client.FetchAccountBalanceAsync(
-                new Acklann.Plaid.Balance.GetBalanceRequest
-                {
-                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
-                    AccessToken = user.AccessToken,
-                }
-            );
+            // Create plaid client
+            var client = new PlaidClient(Going.Plaid.Environment.Development);
+
+            var result = await client.AccountsBalanceGetAsync(request);
 
             foreach (var account in result.Accounts)
             {
                 var accountDto = new AccountDto
                 {
-                    Id = account.Id,
+                    Id = account.AccountId,
                     Name = account.Name,
                     Mask = account.Mask,
                     OfficialName = account.OfficialName,
                     Type = account.Type,
-                    Subtype = account.SubType,
+                    Subtype = account.Subtype,
                 };
 
                 var accountBalance = new AccountBalanceDto
                 {
-                    Current = account.Balance.Current,
-                    Available = account.Balance.Available,
-                    Limit = account.Balance.Limit,
-                    IsoCurrencyCode = account.Balance.ISOCurrencyCode
+                    Current = account.Balances.Current,
+                    Available = account.Balances.Available,
+                    Limit = account.Balances.Limit,
+                    IsoCurrencyCode = account.Balances.IsoCurrencyCode
                 };
 
                 accountDto.Balance = accountBalance;

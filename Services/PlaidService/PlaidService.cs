@@ -34,7 +34,7 @@ namespace financing_api.Services.PlaidService
             try
             {
                 // Get current user from sql db
-                User user = UtilityMethods.GetCurrentUser(_context, _httpContextAccessor);
+                User user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
                 if (user == null)
                 {
@@ -103,7 +103,7 @@ namespace financing_api.Services.PlaidService
             );
 
             // Save accessToken to SQL DB
-            var user = UtilityMethods.GetCurrentUser(_context, _httpContextAccessor);
+            var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
             user.AccessToken = result.AccessToken;
             await _context.SaveChangesAsync();
 

@@ -12,7 +12,7 @@ namespace financing_api.Dtos.Transaction
         public string Name { get; set; }
         public string MerchantName { get; set; }
         public decimal Amount { get; set; }
-        public Array Categories { get; set; }
+        public IReadOnlyList<string>? Categories { get; set; }
         public bool Pending { get; set; }
         public DateTime Date { get; set; }
     }

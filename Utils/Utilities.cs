@@ -8,26 +8,19 @@ using financing_api.Data;
 
 namespace financing_api.Utils
 {
-    public static class UtilityMethods
+    public static class Utilities
     {
-        public static User GetCurrentUser(
-            DataContext _context,
-            IHttpContextAccessor _httpContextAccessor
-        )
+        public static User GetCurrentUser(DataContext _context, IHttpContextAccessor _httpContextAccessor)
         {
             try
             {
-                string email = _httpContextAccessor.HttpContext.User.FindFirstValue(
-                    ClaimTypes.NameIdentifier
-                );
+                string email = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 if (email == null)
                     return null;
 
                 // Get current user from sql db
-                User user = _context.Users.FirstOrDefault(
-                    u => u.Email.ToLower().Equals(email.ToLower())
-                );
+                User user = _context.Users.FirstOrDefault(u => u.Email.ToLower().Equals(email.ToLower()));
 
                 return user;
             }
@@ -37,6 +30,32 @@ namespace financing_api.Utils
                 return null;
             }
         }
+
+        public static string[] GetAccountIds(IReadOnlyList<Going.Plaid.Entity.Account> accounts)
+        {
+            string[] accountIds = new string[accounts.Count()];
+            int i = 0;
+
+            foreach (var account in accounts)
+            {
+                accountIds[i] = account.AccountId;
+                i++;
+            }
+
+            return accountIds;
+        }
+
+        // public static T IsEmpty<T>(T result)
+        // {
+        //     if (result is null)
+        //     {
+        //         Console.WriteLine("Plaid API result is null");
+        //     }
+        //     else if (result.Error is not null)
+        //     {
+        //         Console.WriteLine(result.Error.ErrorMessage);
+        //     }
+        // }
 
         public static PlaidClient GetPlaidClient(IConfiguration _configuration)
         {

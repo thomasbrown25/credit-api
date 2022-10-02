@@ -106,7 +106,7 @@ namespace financing_api.Data
 
             try
             {
-                User user = UtilityMethods.GetCurrentUser(_context, _httpContextAccessor);
+                User user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
                 if (user == null)
                 {

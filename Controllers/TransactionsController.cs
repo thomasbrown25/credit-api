@@ -49,12 +49,10 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
-        [HttpGet("current-month")]
-        public async Task<
-            ActionResult<ServiceResponse<GetTransactionsDto>>
-        > GetCurrentMonthTransactions()
+        [HttpGet("current-spend-month")] // Gets all transactions for all accounts
+        public async Task<ActionResult<ServiceResponse<decimal>>> GetCurrentSpendForMonth()
         {
-            var response = await _transactionsService.GetCurrentMonthTransactions();
+            var response = await _transactionsService.GetCurrentSpendForMonth();
 
             if (!response.Success)
             { // need to set this to server error
@@ -64,10 +62,10 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
-        [HttpGet("current-spend-month")] // Gets all transactions for all accounts
-        public async Task<ActionResult<ServiceResponse<decimal>>> GetCurrentSpendForMonth()
+        [HttpGet("recurring")] // Gets all transactions for all accounts
+        public async Task<ActionResult<ServiceResponse<GetRecurringDto>>> GetRecurringTransactions()
         {
-            var response = await _transactionsService.GetCurrentSpendForMonth();
+            var response = await _transactionsService.GetRecurringTransactions();
 
             if (!response.Success)
             { // need to set this to server error
