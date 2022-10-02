@@ -97,70 +97,92 @@ namespace financing_api.Services.TransactionsService
         public async Task<ServiceResponse<GetTransactionsDto>> GetRecentTransactions(uint count)
         {
             var response = new ServiceResponse<GetTransactionsDto>();
-            response.Data = new GetTransactionsDto();
-            response.Data.Transactions = new List<TransactionDto>();
-            response.Data.Accounts = new List<AccountDto>();
-
-            // Get user for accessToken
-            var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
-
-            if (user == null || user.AccessToken == null)
+            try
             {
-                response.Success = false;
-                response.Message = "User does not have access token";
-                return response;
-            }
+                response.Data = new GetTransactionsDto();
+                response.Data.Transactions = new List<TransactionDto>();
+                response.Data.Accounts = new List<AccountDto>();
 
-            var request = new Going.Plaid.Transactions.TransactionsGetRequest()
-            {
-                Options = new TransactionsGetRequestOptions()
+                // Get user for accessToken
+                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
+                if (user == null || user.AccessToken == null)
                 {
-                    Count = 15
-                },
-                ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
-                AccessToken = user.AccessToken,
-                StartDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1), // gets the first day of the month
-                EndDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)
-            };
+                    response.Success = false;
+                    response.Message = "User does not have access token";
+                    return response;
+                }
 
-            var result = await _client.TransactionsGetAsync(request);
+                var request = new Going.Plaid.Transactions.TransactionsGetRequest()
+                {
+                    Options = new TransactionsGetRequestOptions()
+                    {
+                        Count = 15
+                    },
+                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
+                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                    AccessToken = user.AccessToken,
+                    StartDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1), // gets the first day of the month
+                    EndDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)
+                };
 
-            if (result.Error is not null)
-                Console.WriteLine("Plaid Error: " + result.Error.ErrorMessage);
+                var result = await _client.TransactionsGetAsync(request);
 
-            foreach (var transaction in result.Transactions)
+                if (result is null)
+                {
+                    Console.WriteLine("Plaid Error: result is null");
+                    response.Success = false;
+                    response.Message = "Result was null";
+                    return response;
+                }
+
+                if (result.Error is not null)
+                {
+                    Console.WriteLine("Plaid Error: " + result.Error.ErrorMessage);
+                    response.Success = false;
+                    response.Message = result.Error.ErrorMessage;
+                    return response;
+                }
+
+                foreach (var transaction in result.Transactions)
+                {
+                    var transactionDto = new TransactionDto();
+
+                    transactionDto.AccountId = transaction.AccountId;
+                    transactionDto.Name = transaction.Name;
+                    transactionDto.Amount = transaction.Amount;
+                    transactionDto.Pending = transaction.Pending;
+                    transactionDto.Date = transaction.Date.ToDateTime(TimeOnly.Parse("00:00:00"));
+                    transactionDto.Categories = transaction.Category;
+
+                    response.Data.Transactions.Add(transactionDto);
+                }
+
+                foreach (var account in result.Accounts)
+                {
+                    var accountDto = new AccountDto();
+
+                    accountDto.Id = account.AccountId;
+                    accountDto.Name = account.Name;
+                    accountDto.Mask = account.Mask;
+                    accountDto.OfficialName = account.OfficialName;
+                    accountDto.Type = account.Type;
+
+                    accountDto.Balance = new AccountBalanceDto();
+
+                    accountDto.Balance.Available = account.Balances.Available;
+                    accountDto.Balance.Current = account.Balances.Current;
+                    accountDto.Balance.Limit = account.Balances.Limit;
+
+                    response.Data.Accounts.Add(accountDto);
+                }
+            }
+            catch (System.Exception)
             {
-                var transactionDto = new TransactionDto();
 
-                transactionDto.AccountId = transaction.AccountId;
-                transactionDto.Name = transaction.Name;
-                transactionDto.Amount = transaction.Amount;
-                transactionDto.Pending = transaction.Pending;
-                transactionDto.Date = transaction.Date.ToDateTime(TimeOnly.Parse("00:00:00"));
-                transactionDto.Categories = transaction.Category;
-
-                response.Data.Transactions.Add(transactionDto);
+                throw;
             }
 
-            foreach (var account in result.Accounts)
-            {
-                var accountDto = new AccountDto();
-
-                accountDto.Id = account.AccountId;
-                accountDto.Name = account.Name;
-                accountDto.Mask = account.Mask;
-                accountDto.OfficialName = account.OfficialName;
-                accountDto.Type = account.Type;
-
-                accountDto.Balance = new AccountBalanceDto();
-
-                accountDto.Balance.Available = account.Balances.Available;
-                accountDto.Balance.Current = account.Balances.Current;
-                accountDto.Balance.Limit = account.Balances.Limit;
-
-                response.Data.Accounts.Add(accountDto);
-            }
 
             return response;
         }
