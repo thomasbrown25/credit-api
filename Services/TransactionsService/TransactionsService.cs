@@ -267,7 +267,8 @@ namespace financing_api.Services.TransactionsService
                     ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
                     Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
                     AccessToken = user.AccessToken,
-                    AccountIds = Utilities.GetAccountIds(accountResponse.Accounts)
+                    AccountIds = Utilities.GetAccountIds(accountResponse.Accounts),
+
                 };
 
 
@@ -275,7 +276,12 @@ namespace financing_api.Services.TransactionsService
                 var RecurringResponse = await _client.TransactionsRecurringGetAsync(getRecurringRequest);
 
                 if (RecurringResponse.Error is not null)
+                {
                     Console.WriteLine(RecurringResponse.Error.ErrorMessage);
+                    response.Success = false;
+                    response.Message = RecurringResponse.Error.ErrorMessage;
+                    return response;
+                }
 
                 foreach (var inflowStream in RecurringResponse.InflowStreams)
                 {
@@ -318,9 +324,12 @@ namespace financing_api.Services.TransactionsService
                 }
 
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
                 Console.WriteLine("Recurring Transactions failed");
+                response.Success = false;
+                response.Message = ex.Message;
+                return response;
             }
 
             return response;

@@ -61,9 +61,15 @@ namespace financing_api.Services.PlaidService
                         Language = "en",
                         CountryCodes = new string[] { "US" },
                         User = plaidUser,
-                        Products = new string[] { "auth" }
+                        Products = new string[] { "auth", "transactions" }
                     }
                 );
+
+                if (result.Exception is not null)
+                {
+                    response.Success = false;
+                    response.Message = result.Exception.ErrorMessage;
+                }
 
                 response.Data = result.LinkToken;
 
