@@ -79,7 +79,64 @@ namespace financing_api.Services.PlaidService
             {
                 response.Success = false;
                 response.Message = ex.Message;
-                response.Exception = ex.InnerException;
+            }
+            return response;
+        }
+
+
+        public async Task<ServiceResponse<string>> UpdateLinkToken()
+        {
+            ServiceResponse<string> response = new ServiceResponse<string>();
+
+            try
+            {
+                // Get current user from sql db
+                User user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
+                if (user == null)
+                {
+                    response.Success = false;
+                    response.Message = "User not found.";
+                    return response;
+                }
+
+                // Create plaid client
+                var client = new PlaidClient(Acklann.Plaid.Environment.Development);
+
+                // Create plaid user with user id
+                var plaidUser = new Acklann.Plaid.Management.CreateLinkTokenRequest.UserInfo()
+                {
+                    ClientUserId = user.Id.ToString()
+                };
+
+                var result = await client.CreateLinkToken(
+                    new Acklann.Plaid.Management.CreateLinkTokenRequest()
+                    {
+                        ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
+                        Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                        AccessToken = user.AccessToken,
+                        ClientName = "Financing Api",
+                        Language = "en",
+                        CountryCodes = new string[] { "US" },
+                        User = plaidUser,
+                        Products = new string[] { "auth", "transactions" }
+                    }
+                );
+
+                if (result.Exception is not null)
+                {
+                    response.Success = false;
+                    response.Message = result.Exception.ErrorMessage;
+                }
+
+                response.Data = result.LinkToken;
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = ex.Message;
             }
             return response;
         }

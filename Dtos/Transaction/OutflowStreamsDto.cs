@@ -12,7 +12,7 @@ namespace financing_api.Dtos.Transaction
         public IReadOnlyList<string>? Categories { get; set; }
         public string Description { get; set; }
         public DateTime FirstDate { get; set; }
-        public Going.Plaid.Entity.RecurringTransactionFrequency Frequency { get; set; }
+        public string Frequency { get; set; }
         public bool IsActive { get; set; }
         public Going.Plaid.Entity.TransactionStreamAmount LastAmount { get; set; }
         public DateTime LastDate { get; set; }

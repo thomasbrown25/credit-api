@@ -33,6 +33,19 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
+        [HttpPost("update-link-token")] // Creates a link token in Plaid and returns the link token
+        public async Task<ActionResult<ServiceResponse<string>>> UpdateLinkToken()
+        {
+            var response = await _plaidService.UpdateLinkToken();
+
+            if (!response.Success)
+            { // need to set this to server error
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+
+        [Authorize]
         [HttpPost("public-token-exchange")] // Exchanges the public token for the access token
         public async Task<ActionResult<ServiceResponse<string>>> PublicTokenExchange(
             [FromBody] string publicToken

@@ -11,7 +11,9 @@ namespace financing_api.Dtos.Transaction
         public int Id { get; set; }
         public List<TransactionDto> Transactions { get; set; }
         public List<AccountDto> Accounts { get; set; }
-        public HashSet<string> Categories { get; set; }
+        public Dictionary<string, decimal> Categories { get; set; }
+        public HashSet<string> CategoryLabels { get; set; }
+        public HashSet<decimal> CategoryAmounts { get; set; }
         public decimal CurrentSpendAmount { get; set; }
     }
 }

@@ -122,7 +122,6 @@ namespace financing_api.Data
                 Console.WriteLine(ex.Message);
                 response.Success = false;
                 response.Message = ex.Message;
-                response.Exception = ex.InnerException;
             }
             return response;
         }

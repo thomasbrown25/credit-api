@@ -14,6 +14,7 @@ using financing_api.Shared;
 using Going.Plaid.Entity;
 using financing_api.Dtos.Account;
 using financing_api.Utils;
+using System.Collections;
 
 namespace financing_api.Services.TransactionsService
 {
@@ -44,59 +45,7 @@ namespace financing_api.Services.TransactionsService
         public async Task<ServiceResponse<GetTransactionsDto>> GetTransactions()
         {
             var response = new ServiceResponse<GetTransactionsDto>();
-            response.Data = new GetTransactionsDto();
 
-            // Get user for accessToken
-            var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
-
-            if (user == null || user.AccessToken == null)
-            {
-                response.Success = false;
-                response.Message = "User does not have access token";
-                return response;
-            }
-
-            var startDate = DateTime.Today.AddDays(-30);
-
-            var request = new Going.Plaid.Transactions.TransactionsGetRequest()
-            {
-                Options = new TransactionsGetRequestOptions()
-                {
-                    Count = 15
-                },
-                ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
-                AccessToken = user.AccessToken,
-                StartDate = new DateOnly(startDate.Year, startDate.Month, startDate.Day),
-                EndDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)
-            };
-
-            var result = await _client.TransactionsGetAsync(request);
-
-            if (result.Error is not null)
-                Console.WriteLine(result.Error.ErrorMessage);
-
-            foreach (var transaction in result.Transactions)
-            {
-                var transactionDto = new TransactionDto();
-
-                transactionDto.AccountId = transaction.AccountId;
-                transactionDto.Name = transaction.Name;
-                transactionDto.Amount = transaction.Amount;
-                transactionDto.Pending = transaction.Pending;
-                transactionDto.Date = transaction.Date.ToDateTime(TimeOnly.Parse("00:00:00"));
-                transactionDto.Categories = transaction.Category;
-
-                response.Data.Transactions.Add(transactionDto);
-            }
-
-            return response;
-        }
-
-        // Get Recent Transactions
-        public async Task<ServiceResponse<GetTransactionsDto>> GetRecentTransactions(uint count)
-        {
-            var response = new ServiceResponse<GetTransactionsDto>();
             try
             {
                 response.Data = new GetTransactionsDto();
@@ -113,30 +62,24 @@ namespace financing_api.Services.TransactionsService
                     return response;
                 }
 
+                var startDate = DateTime.Today.AddMonths(-4);
+
                 var request = new Going.Plaid.Transactions.TransactionsGetRequest()
                 {
                     Options = new TransactionsGetRequestOptions()
                     {
-                        Count = 15
+                        Count = 500
                     },
                     ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
                     Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
                     AccessToken = user.AccessToken,
-                    StartDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1), // gets the first day of the month
+                    StartDate = new DateOnly(startDate.Year, startDate.Month, startDate.Day),
                     EndDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)
                 };
 
                 var result = await _client.TransactionsGetAsync(request);
 
-                if (result is null)
-                {
-                    Console.WriteLine("Plaid Error: result is null");
-                    response.Success = false;
-                    response.Message = "Result was null";
-                    return response;
-                }
-
-                if (result.Error is not null)
+                if (result is not null && result.Error is not null)
                 {
                     Console.WriteLine("Plaid Error: " + result.Error.ErrorMessage);
                     response.Success = false;
@@ -150,6 +93,7 @@ namespace financing_api.Services.TransactionsService
 
                     transactionDto.AccountId = transaction.AccountId;
                     transactionDto.Name = transaction.Name;
+                    transactionDto.MerchantName = transaction.MerchantName;
                     transactionDto.Amount = transaction.Amount;
                     transactionDto.Pending = transaction.Pending;
                     transactionDto.Date = transaction.Date.ToDateTime(TimeOnly.Parse("00:00:00"));
@@ -177,10 +121,97 @@ namespace financing_api.Services.TransactionsService
                     response.Data.Accounts.Add(accountDto);
                 }
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
+                Console.WriteLine("Get Transactions failed: " + ex.Message);
+                response.Success = false;
+                response.Message = ex.Message;
+                return response;
+            }
+            return response;
+        }
 
-                throw;
+        // Get Recent Transactions
+        public async Task<ServiceResponse<GetTransactionsDto>> GetRecentTransactions(uint count)
+        {
+            var response = new ServiceResponse<GetTransactionsDto>();
+            try
+            {
+                response.Data = new GetTransactionsDto();
+                response.Data.Transactions = new List<TransactionDto>();
+                response.Data.Accounts = new List<AccountDto>();
+                response.Data.Categories = new Dictionary<string, decimal>();
+                response.Data.CategoryLabels = new HashSet<string>();
+                response.Data.CategoryAmounts = new HashSet<decimal>();
+
+                // Get user for accessToken
+                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
+                if (user == null || user.AccessToken == null)
+                {
+                    response.Success = false;
+                    response.Message = "User does not have access token";
+                    return response;
+                }
+
+                var request = new Going.Plaid.Transactions.TransactionsGetRequest()
+                {
+                    Options = new TransactionsGetRequestOptions()
+                    {
+                        Count = 500
+                    },
+                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
+                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                    AccessToken = user.AccessToken,
+                    StartDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1), // gets the first day of the month
+                    EndDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)
+                };
+
+                var result = await _client.TransactionsGetAsync(request);
+
+                if (result.Error is not null)
+                {
+                    Console.WriteLine("Plaid Error: " + result.Error.ErrorMessage);
+                    response.Success = false;
+                    response.Message = result.Error.ErrorMessage;
+                    return response;
+                }
+
+                var categoryList = new Stack<string>();
+
+                foreach (var transaction in result.Transactions)
+                {
+                    var transactionDto = new TransactionDto();
+
+                    transactionDto.AccountId = transaction.AccountId;
+                    transactionDto.Name = transaction.Name;
+                    transactionDto.Amount = transaction.Amount;
+                    transactionDto.Pending = transaction.Pending;
+                    transactionDto.Date = transaction.Date.ToDateTime(TimeOnly.Parse("00:00:00"));
+                    transactionDto.Categories = transaction.Category;
+
+                    if (!response.Data.Categories.ContainsKey(transaction.Category[0]))
+                    {
+                        response.Data.Categories.Add(transaction.Category[0], transaction.Amount);
+                    }
+                    else
+                    {
+                        response.Data.Categories[transaction.Category[0]] = response.Data.Categories[transaction.Category[0]] + transaction.Amount;
+                    }
+
+                    response.Data.Transactions.Add(transactionDto);
+                }
+
+                response.Data.CategoryLabels = response.Data.Categories.Keys.ToHashSet();
+                response.Data.CategoryAmounts = response.Data.Categories.Values.ToHashSet();
+
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("Recent Transactions failed: " + ex.Message);
+                response.Success = false;
+                response.Message = ex.Message;
+                return response;
             }
 
 
@@ -214,7 +245,14 @@ namespace financing_api.Services.TransactionsService
             );
 
             if (result.Error is not null)
+            {
                 Console.WriteLine(result.Error.ErrorMessage);
+                response.Success = false;
+                response.Error = new Error();
+                response.Error.ErrorCode = result.Error.ErrorCode.ToString();
+                response.Error.ErrorMessage = result.Error.ErrorMessage;
+                return response;
+            }
 
             foreach (var transaction in result.Transactions)
             {
@@ -236,8 +274,9 @@ namespace financing_api.Services.TransactionsService
             {
                 response.Data = new GetRecurringDto();
                 response.Data.InflowStream = new List<InflowStreamsDto>();
+                response.Data.OutflowStream = new List<OutflowStreamsDto>();
 
-                // Get user for accessToken
+                // Get user for accessToken6
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
                 if (user == null || user.AccessToken == null)
@@ -258,8 +297,12 @@ namespace financing_api.Services.TransactionsService
                 var accountResponse = await _client.AccountsGetAsync(getAccountRequest);
 
                 if (accountResponse.Error is not null)
+                {
                     Console.WriteLine(accountResponse.Error.ErrorMessage);
-
+                    response.Success = false;
+                    response.Message = accountResponse.Error.ErrorMessage;
+                    return response;
+                }
 
 
                 var getRecurringRequest = new Going.Plaid.Transactions.TransactionsRecurringGetRequest()
@@ -292,7 +335,7 @@ namespace financing_api.Services.TransactionsService
                     inflowStreamsDto.Categories = inflowStream.Category;
                     inflowStreamsDto.Description = inflowStream.Description;
                     inflowStreamsDto.FirstDate = inflowStream.FirstDate.ToDateTime(TimeOnly.Parse("00:00:00"));
-                    inflowStreamsDto.Frequency = inflowStream.Frequency;
+                    inflowStreamsDto.Frequency = inflowStream.Frequency.ToString();
                     inflowStreamsDto.IsActive = inflowStream.IsActive;
                     inflowStreamsDto.LastAmount = inflowStream.LastAmount;
                     inflowStreamsDto.LastDate = inflowStream.LastDate.ToDateTime(TimeOnly.Parse("00:00:00"));
@@ -303,22 +346,24 @@ namespace financing_api.Services.TransactionsService
                     response.Data.InflowStream.Add(inflowStreamsDto);
                 }
 
-                foreach (var outflowStream in RecurringResponse.OutflowStreams)
+
+                for (var i = 0; i < 10; i++)
                 {
+                    var outflowStream = RecurringResponse.OutflowStreams;
                     var outflowStreamsDto = new OutflowStreamsDto();
 
-                    outflowStreamsDto.AccountId = outflowStream.AccountId;
-                    outflowStreamsDto.AverageAmount = outflowStream.AverageAmount;
-                    outflowStreamsDto.Categories = outflowStream.Category;
-                    outflowStreamsDto.Description = outflowStream.Description;
-                    outflowStreamsDto.FirstDate = outflowStream.FirstDate.ToDateTime(TimeOnly.Parse("00:00:00"));
-                    outflowStreamsDto.Frequency = outflowStream.Frequency;
-                    outflowStreamsDto.IsActive = outflowStream.IsActive;
-                    outflowStreamsDto.LastAmount = outflowStream.LastAmount;
-                    outflowStreamsDto.LastDate = outflowStream.LastDate.ToDateTime(TimeOnly.Parse("00:00:00"));
-                    outflowStreamsDto.MerchantName = outflowStream.MerchantName;
-                    outflowStreamsDto.Status = outflowStream.Status;
-                    outflowStreamsDto.StreamId = outflowStream.StreamId;
+                    outflowStreamsDto.AccountId = RecurringResponse.OutflowStreams[i].AccountId;
+                    outflowStreamsDto.AverageAmount = RecurringResponse.OutflowStreams[i].AverageAmount;
+                    outflowStreamsDto.Categories = RecurringResponse.OutflowStreams[i].Category;
+                    outflowStreamsDto.Description = RecurringResponse.OutflowStreams[i].Description;
+                    outflowStreamsDto.FirstDate = RecurringResponse.OutflowStreams[i].FirstDate.ToDateTime(TimeOnly.Parse("00:00:00"));
+                    outflowStreamsDto.Frequency = RecurringResponse.OutflowStreams[i].Frequency.ToString();
+                    outflowStreamsDto.IsActive = RecurringResponse.OutflowStreams[i].IsActive;
+                    outflowStreamsDto.LastAmount = RecurringResponse.OutflowStreams[i].LastAmount;
+                    outflowStreamsDto.LastDate = RecurringResponse.OutflowStreams[i].LastDate.ToDateTime(TimeOnly.Parse("00:00:00"));
+                    outflowStreamsDto.MerchantName = RecurringResponse.OutflowStreams[i].MerchantName;
+                    outflowStreamsDto.Status = RecurringResponse.OutflowStreams[i].Status;
+                    outflowStreamsDto.StreamId = RecurringResponse.OutflowStreams[i].StreamId;
 
                     response.Data.OutflowStream.Add(outflowStreamsDto);
                 }
@@ -326,7 +371,7 @@ namespace financing_api.Services.TransactionsService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Recurring Transactions failed");
+                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
