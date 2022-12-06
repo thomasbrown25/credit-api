@@ -154,6 +154,8 @@ namespace financing_api.Services.TransactionsService
                     return response;
                 }
 
+                Console.WriteLine("Getting plaid client id in recent transactions: " + _configuration["PlaidClientId"]);
+
                 var request = new Going.Plaid.Transactions.TransactionsGetRequest()
                 {
                     Options = new TransactionsGetRequestOptions()
