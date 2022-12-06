@@ -41,16 +41,16 @@ else
 {
     Console.WriteLine("env is prod");
 
-    // var endpoint = builder.Configuration.GetSection("AppConfigEndpoint").Value;
-    // Console.WriteLine("Got the endpoint: " + endpoint);
-    // var credentials = new ManagedIdentityCredential();
-    // configBuilder.AddAzureAppConfiguration(options =>
-    // {
-    //     options.Connect(new Uri(endpoint), credentials);
-    // });
+    var endpoint = builder.Configuration.GetSection("AppConfigEndpoint").Value;
+    Console.WriteLine("Got the endpoint: " + endpoint);
+    var credentials = new ManagedIdentityCredential();
+    configBuilder.AddAzureAppConfiguration(options =>
+    {
+        options.Connect(new Uri(endpoint), credentials);
+    });
 
-    var connectionString = builder.Configuration.GetConnectionString("AzureAppConfiguration");
-    configBuilder.AddAzureAppConfiguration("Endpoint=https://financing-api-configs.azconfig.io;Id=GY7h-l4-s0:q/fWVEhyDj2NGi27622K;Secret=DVJDrGSpbMI0o7di/9FteiwHuUhQHhmZgrMJdhaO7jQ=");
+
+
 }
 
 
@@ -60,6 +60,7 @@ else
 
 var configuration = configBuilder.Build();
 
+Console.WriteLine("getting plaid client id: " + configuration["AppSettings:Plaid:ClientId"]);
 
 // Add Going.Plaid services
 services.AddHttpClient();
