@@ -56,6 +56,7 @@ services.AddHttpClient();
 // services.Configure<PlaidCredentials>(configuration.GetSection(PlaidOptions.SectionKey));
 // services.Configure<PlaidOptions>(configuration.GetSection(PlaidOptions.SectionKey));
 services.AddSingleton<PlaidClient>();
+services.AddSingleton<IConfiguration>(configuration);
 // services.AddSingleton<ContextContainer>(new ContextContainer() { RunningOnServer = true });
 
 var client = new PlaidClient(Going.Plaid.Environment.Development);

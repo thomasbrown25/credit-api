@@ -38,7 +38,7 @@ namespace financing_api.Services.TransactionsService
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
             _credentials = credentials.Value;
-            _client = new PlaidClient(Going.Plaid.Environment.Development); ;
+            _client = new PlaidClient(Going.Plaid.Environment.Development);
         }
 
         // Get All Transactions from Plaid
