@@ -70,8 +70,8 @@ namespace financing_api.Services.TransactionsService
                     {
                         Count = 500
                     },
-                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                    ClientId = _configuration["PlaidClientId"],
+                    Secret = _configuration["PlaidSecret"],
                     AccessToken = user.AccessToken,
                     StartDate = new DateOnly(startDate.Year, startDate.Month, startDate.Day),
                     EndDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)
@@ -160,8 +160,8 @@ namespace financing_api.Services.TransactionsService
                     {
                         Count = 500
                     },
-                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                    ClientId = _configuration["PlaidClientId"],
+                    Secret = _configuration["PlaidSecret"],
                     AccessToken = user.AccessToken,
                     StartDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1), // gets the first day of the month
                     EndDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)
@@ -236,8 +236,8 @@ namespace financing_api.Services.TransactionsService
             var result = await _client.TransactionsGetAsync(
                 new()
                 {
-                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                    ClientId = _configuration["PlaidClientId"],
+                    Secret = _configuration["PlaidSecret"],
                     AccessToken = user.AccessToken,
                     StartDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1), // gets the first day of the month
                     EndDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)
@@ -289,8 +289,8 @@ namespace financing_api.Services.TransactionsService
                 // Get Account IDs 
                 var getAccountRequest = new Going.Plaid.Accounts.AccountsGetRequest()
                 {
-                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                    ClientId = _configuration["PlaidClientId"],
+                    Secret = _configuration["PlaidSecret"],
                     AccessToken = user.AccessToken
                 };
 
@@ -307,8 +307,8 @@ namespace financing_api.Services.TransactionsService
 
                 var getRecurringRequest = new Going.Plaid.Transactions.TransactionsRecurringGetRequest()
                 {
-                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                    ClientId = _configuration["PlaidClientId"],
+                    Secret = _configuration["PlaidSecret"],
                     AccessToken = user.AccessToken,
                     AccountIds = Utilities.GetAccountIds(accountResponse.Accounts),
 

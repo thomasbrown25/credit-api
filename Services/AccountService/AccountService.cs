@@ -46,8 +46,8 @@ namespace financing_api.Services.AccountService
 
                 var request = new Going.Plaid.Accounts.AccountsBalanceGetRequest()
                 {
-                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                    ClientId = _configuration["PlaidClientId"],
+                    Secret = _configuration["PlaidSecret"],
                     AccessToken = user.AccessToken,
                 };
 

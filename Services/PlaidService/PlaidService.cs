@@ -55,8 +55,8 @@ namespace financing_api.Services.PlaidService
                 var result = await client.CreateLinkToken(
                     new Acklann.Plaid.Management.CreateLinkTokenRequest()
                     {
-                        ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                        Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                        ClientId = _configuration["PlaidClientId"],
+                        Secret = _configuration["PlaidSecret"],
                         ClientName = "Financing Api",
                         Language = "en",
                         CountryCodes = new string[] { "US" },
@@ -112,8 +112,8 @@ namespace financing_api.Services.PlaidService
                 var result = await client.CreateLinkToken(
                     new Acklann.Plaid.Management.CreateLinkTokenRequest()
                     {
-                        ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                        Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                        ClientId = _configuration["PlaidClientId"],
+                        Secret = _configuration["PlaidSecret"],
                         AccessToken = user.AccessToken,
                         ClientName = "Financing Api",
                         Language = "en",
@@ -159,8 +159,8 @@ namespace financing_api.Services.PlaidService
             var result = await client.ExchangeTokenAsync(
                 new Acklann.Plaid.Management.ExchangeTokenRequest()
                 {
-                    ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-                    Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+                    ClientId = _configuration["PlaidClientId"],
+                    Secret = _configuration["PlaidSecret"],
                     PublicToken = publicToken
                 }
             );
@@ -197,8 +197,8 @@ namespace financing_api.Services.PlaidService
         //     var result = await client.FetchTransactionsAsync(
         //         new Acklann.Plaid.()
         //         {
-        //             ClientId = _configuration.GetSection("AppSettings:Plaid:ClientId").Value,
-        //             Secret = _configuration.GetSection("AppSettings:Plaid:Secret").Value,
+        //             ClientId = _configuration["PlaidClientId"],
+        //             Secret = _configuration["PlaidSecret"],
         //             AccessToken = user.AccessToken,
         //             StartDate = DateTime.Today.AddMonths(-1),
         //             EndDate = DateTime.Today
