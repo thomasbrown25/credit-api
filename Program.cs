@@ -50,7 +50,7 @@ else
     // });
 
     var connectionString = builder.Configuration.GetConnectionString("AzureAppConfiguration");
-    configBuilder.AddAzureAppConfiguration(connectionString);
+    configBuilder.AddAzureAppConfiguration("Endpoint=https://financing-api-configs.azconfig.io;Id=GY7h-l4-s0:q/fWVEhyDj2NGi27622K;Secret=DVJDrGSpbMI0o7di/9FteiwHuUhQHhmZgrMJdhaO7jQ=");
 }
 
 
