@@ -41,13 +41,16 @@ else
 {
     Console.WriteLine("env is prod");
 
-    var endpoint = builder.Configuration.GetSection("AppConfigEndpoint").Value;
-    Console.WriteLine("Got the endpoint: " + endpoint);
-    var credentials = new ManagedIdentityCredential();
-    configBuilder.AddAzureAppConfiguration(options =>
-    {
-        options.Connect(new Uri(endpoint), credentials);
-    });
+    // var endpoint = builder.Configuration.GetSection("AppConfigEndpoint").Value;
+    // Console.WriteLine("Got the endpoint: " + endpoint);
+    // var credentials = new ManagedIdentityCredential();
+    // configBuilder.AddAzureAppConfiguration(options =>
+    // {
+    //     options.Connect(new Uri(endpoint), credentials);
+    // });
+
+    var connectionString = builder.Configuration.GetConnectionString("AzureAppConfiguration");
+    configBuilder.AddAzureAppConfiguration(connectionString);
 }
 
 // You can put your plaid secrets here. But really you can put them
