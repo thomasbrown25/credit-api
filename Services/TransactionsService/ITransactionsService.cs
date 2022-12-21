@@ -15,6 +15,12 @@ namespace financing_api.Services.TransactionsService
         // Get the current spend for the month
         Task<ServiceResponse<decimal>> GetCurrentSpendForMonth();
         // Get recurring transactions
-        Task<ServiceResponse<GetRecurringDto>> GetRecurringTransactions();
+        Task<ServiceResponse<List<GetRecurringDto>>> GetRecurringTransactions();
+        // Refresh recurring transactions
+        Task<ServiceResponse<List<RecurringDto>>> RefreshRecurringTransactions();
+        // Add recurring transactions
+        Task<ServiceResponse<List<RecurringDto>>> AddRecurringTransaction(AddRecurringDto newRecurring);
+        // Update recurring transactions
+        Task<ServiceResponse<RecurringDto>> UpdateRecurringTransaction(UpdateRecurringDto updatedRecurring);
     }
 }

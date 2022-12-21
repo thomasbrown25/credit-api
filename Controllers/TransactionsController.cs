@@ -63,9 +63,48 @@ namespace financing_api.Controllers
 
         [Authorize]
         [HttpGet("recurring")] // Gets all transactions for all accounts
-        public async Task<ActionResult<ServiceResponse<GetRecurringDto>>> GetRecurringTransactions()
+        public async Task<ActionResult<ServiceResponse<List<GetRecurringDto>>>> GetRecurringTransactions()
         {
             var response = await _transactionsService.GetRecurringTransactions();
+
+            if (!response.Success)
+            { // need to set this to server error
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+
+        [Authorize]
+        [HttpPost("recurring")] // Adds recurring transaction
+        public async Task<ActionResult<ServiceResponse<List<RecurringDto>>>> AddRecurringTransaction(AddRecurringDto newRecurring)
+        {
+            var response = await _transactionsService.AddRecurringTransaction(newRecurring);
+
+            if (!response.Success)
+            { // need to set this to server error
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+
+        [Authorize]
+        [HttpPost("recurring/update")] // Update recurring transaction
+        public async Task<ActionResult<ServiceResponse<RecurringDto>>> UpdateRecurringTransaction(UpdateRecurringDto updatedRecurring)
+        {
+            var response = await _transactionsService.UpdateRecurringTransaction(updatedRecurring);
+
+            if (!response.Success)
+            { // need to set this to server error
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+
+        [Authorize]
+        [HttpPost("recurring/refresh")] // Update recurring transaction
+        public async Task<ActionResult<ServiceResponse<List<RecurringDto>>>> RefreshRecurringTransactions()
+        {
+            var response = await _transactionsService.RefreshRecurringTransactions();
 
             if (!response.Success)
             { // need to set this to server error

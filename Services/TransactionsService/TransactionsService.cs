@@ -8,6 +8,7 @@ using System.Security.Claims;
 using financing_api.Dtos.Transaction;
 using financing_api.Logging;
 using Going.Plaid;
+using AutoMapper;
 using Going.Plaid.Transactions;
 using Microsoft.Extensions.Options;
 using financing_api.Shared;
@@ -25,13 +26,15 @@ namespace financing_api.Services.TransactionsService
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly PlaidCredentials _credentials;
         private readonly PlaidClient _client;
+        private readonly IMapper _mapper;
 
         public TransactionsService(
             DataContext context,
             IConfiguration configuration,
             IHttpContextAccessor httpContextAccessor,
             IOptions<PlaidCredentials> credentials,
-            PlaidClient client
+            PlaidClient client,
+            IMapper mapper
         )
         {
             _context = context;
@@ -39,6 +42,7 @@ namespace financing_api.Services.TransactionsService
             _httpContextAccessor = httpContextAccessor;
             _credentials = credentials.Value;
             _client = new PlaidClient(Going.Plaid.Environment.Development);
+            _mapper = mapper;
         }
 
         // Get All Transactions from Plaid
@@ -269,14 +273,46 @@ namespace financing_api.Services.TransactionsService
         }
 
         // Get Recurring Transactions
-        public async Task<ServiceResponse<GetRecurringDto>> GetRecurringTransactions()
+        public async Task<ServiceResponse<List<GetRecurringDto>>> GetRecurringTransactions()
         {
-            var response = new ServiceResponse<GetRecurringDto>();
+            var response = new ServiceResponse<List<GetRecurringDto>>();
+
             try
             {
-                response.Data = new GetRecurringDto();
-                response.Data.InflowStream = new List<InflowStreamsDto>();
-                response.Data.OutflowStream = new List<OutflowStreamsDto>();
+                // Get user for accessToken
+                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
+                if (user == null || user.AccessToken == null)
+                {
+                    response.Success = false;
+                    response.Message = "User does not have access token";
+                    return response;
+                }
+
+                var dbRecurrings = await _context.Recurrings
+                    .Where(r => r.UserId == user.Id)
+                    .ToListAsync();
+
+                response.Data = dbRecurrings.Select(r => _mapper.Map<GetRecurringDto>(r)).ToList();
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                response.Success = false;
+                response.Message = ex.Message;
+                return response;
+            }
+
+            return response;
+        }
+
+        // Get Recurring Transactions
+        public async Task<ServiceResponse<List<RecurringDto>>> RefreshRecurringTransactions()
+        {
+            var response = new ServiceResponse<List<RecurringDto>>();
+            try
+            {
+                response.Data = new List<RecurringDto>();
 
                 // Get user for accessToken6
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
@@ -306,17 +342,13 @@ namespace financing_api.Services.TransactionsService
                     return response;
                 }
 
-
                 var getRecurringRequest = new Going.Plaid.Transactions.TransactionsRecurringGetRequest()
                 {
                     ClientId = _configuration["PlaidClientId"],
                     Secret = _configuration["PlaidSecret"],
                     AccessToken = user.AccessToken,
                     AccountIds = Utilities.GetAccountIds(accountResponse.Accounts),
-
                 };
-
-
 
                 var RecurringResponse = await _client.TransactionsRecurringGetAsync(getRecurringRequest);
 
@@ -328,46 +360,141 @@ namespace financing_api.Services.TransactionsService
                     return response;
                 }
 
+
                 foreach (var inflowStream in RecurringResponse.InflowStreams)
                 {
-                    var inflowStreamsDto = new InflowStreamsDto();
 
-                    inflowStreamsDto.AccountId = inflowStream.AccountId;
-                    inflowStreamsDto.AverageAmount = inflowStream.AverageAmount;
-                    inflowStreamsDto.Categories = inflowStream.Category;
-                    inflowStreamsDto.Description = inflowStream.Description;
-                    inflowStreamsDto.FirstDate = inflowStream.FirstDate.ToDateTime(TimeOnly.Parse("00:00:00"));
-                    inflowStreamsDto.Frequency = inflowStream.Frequency.ToString();
-                    inflowStreamsDto.IsActive = inflowStream.IsActive;
-                    inflowStreamsDto.LastAmount = inflowStream.LastAmount;
-                    inflowStreamsDto.LastDate = inflowStream.LastDate.ToDateTime(TimeOnly.Parse("00:00:00"));
-                    inflowStreamsDto.MerchantName = inflowStream.MerchantName;
-                    inflowStreamsDto.Status = inflowStream.Status;
-                    inflowStreamsDto.StreamId = inflowStream.StreamId;
+                    var dbRecurring = await _context.Recurrings
+                        .FirstOrDefaultAsync(r => r.StreamId == inflowStream.StreamId);
 
-                    response.Data.InflowStream.Add(inflowStreamsDto);
+                    if (dbRecurring is null)
+                    {
+                        var recurring = new RecurringDto();
+
+                        recurring.UserId = user.Id;
+                        recurring.StreamId = inflowStream.StreamId;
+                        recurring.AccountId = inflowStream.AccountId;
+                        recurring.Type = "Income";
+                        recurring.Category = inflowStream.Category[0];
+                        recurring.Description = inflowStream.Description;
+                        recurring.MerchantName = inflowStream.MerchantName;
+                        recurring.FirstDate = inflowStream.FirstDate.ToDateTime(TimeOnly.Parse("00:00:00")).ToString();
+                        recurring.LastDate = inflowStream.LastDate.ToDateTime(TimeOnly.Parse("00:00:00")).ToString();
+                        recurring.Frequency = inflowStream.Frequency.ToString();
+                        recurring.LastAmount = inflowStream.LastAmount.Amount;
+                        recurring.IsActive = inflowStream.IsActive;
+                        recurring.Status = inflowStream.Status.ToString();
+
+                        // Map recurring with recurringDto db
+                        Recurring recurringDb = _mapper.Map<Recurring>(recurring);
+                        _context.Recurrings.Add(recurringDb);
+                    }
+
                 }
 
-
-                for (var i = 0; i < 10; i++)
+                foreach (var outflowStream in RecurringResponse.OutflowStreams)
                 {
-                    var outflowStream = RecurringResponse.OutflowStreams;
-                    var outflowStreamsDto = new OutflowStreamsDto();
 
-                    outflowStreamsDto.AccountId = RecurringResponse.OutflowStreams[i].AccountId;
-                    outflowStreamsDto.AverageAmount = RecurringResponse.OutflowStreams[i].AverageAmount;
-                    outflowStreamsDto.Categories = RecurringResponse.OutflowStreams[i].Category;
-                    outflowStreamsDto.Description = RecurringResponse.OutflowStreams[i].Description;
-                    outflowStreamsDto.FirstDate = RecurringResponse.OutflowStreams[i].FirstDate.ToDateTime(TimeOnly.Parse("00:00:00"));
-                    outflowStreamsDto.Frequency = RecurringResponse.OutflowStreams[i].Frequency.ToString();
-                    outflowStreamsDto.IsActive = RecurringResponse.OutflowStreams[i].IsActive;
-                    outflowStreamsDto.LastAmount = RecurringResponse.OutflowStreams[i].LastAmount;
-                    outflowStreamsDto.LastDate = RecurringResponse.OutflowStreams[i].LastDate.ToDateTime(TimeOnly.Parse("00:00:00"));
-                    outflowStreamsDto.MerchantName = RecurringResponse.OutflowStreams[i].MerchantName;
-                    outflowStreamsDto.Status = RecurringResponse.OutflowStreams[i].Status;
-                    outflowStreamsDto.StreamId = RecurringResponse.OutflowStreams[i].StreamId;
+                    var dbRecurring = await _context.Recurrings
+                        .FirstOrDefaultAsync(r => r.StreamId == outflowStream.StreamId);
 
-                    response.Data.OutflowStream.Add(outflowStreamsDto);
+                    if (dbRecurring is null)
+                    {
+                        var recurring = new RecurringDto();
+
+                        recurring.UserId = user.Id;
+                        recurring.StreamId = outflowStream.StreamId;
+                        recurring.AccountId = outflowStream.AccountId;
+                        recurring.Type = "Expense";
+                        recurring.Category = outflowStream.Category[0];
+                        recurring.Description = outflowStream.Description;
+                        recurring.MerchantName = outflowStream.MerchantName;
+                        recurring.FirstDate = outflowStream.FirstDate.ToDateTime(TimeOnly.Parse("00:00:00")).ToString();
+                        recurring.LastDate = outflowStream.LastDate.ToDateTime(TimeOnly.Parse("00:00:00")).ToString();
+                        recurring.Frequency = outflowStream.Frequency.ToString();
+                        recurring.LastAmount = outflowStream.LastAmount.Amount;
+                        recurring.IsActive = outflowStream.IsActive;
+                        recurring.Status = outflowStream.Status.ToString();
+
+                        // Map recurring with recurringDto db
+                        Recurring recurringDb = _mapper.Map<Recurring>(recurring);
+                        _context.Recurrings.Add(recurringDb);
+                    }
+
+                }
+
+                // save to Db
+                await _context.SaveChangesAsync();
+
+                var dbRecurrings = await _context.Recurrings
+                    .Where(c => c.UserId == user.Id)
+                    .ToListAsync();
+
+                // get data from DB
+                response.Data = dbRecurrings.Select(c => _mapper.Map<RecurringDto>(c)).ToList();
+
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                response.Success = false;
+                response.Message = ex.Message + " --------- Inner Exception: " + ex.InnerException.Message;
+                return response;
+            }
+
+            return response;
+        }
+
+        public async Task<ServiceResponse<List<RecurringDto>>> AddRecurringTransaction(AddRecurringDto newRecurring)
+        {
+            var response = new ServiceResponse<List<RecurringDto>>();
+
+            try
+            {
+                // Map recurring with recurringDto
+                Recurring recurring = _mapper.Map<Recurring>(newRecurring);
+
+                // Set the current user Id
+                recurring.UserId = Utilities.GetUserId(_httpContextAccessor);
+
+                // Add recurring and save to DB
+                _context.Recurrings.Add(recurring);
+                await _context.SaveChangesAsync();
+
+                response.Data = await _context.Recurrings
+                    .Where(c => c.UserId == Utilities.GetUserId(_httpContextAccessor))
+                    .Select(c => _mapper.Map<RecurringDto>(c))
+                    .ToListAsync();
+
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                response.Success = false;
+                response.Message = ex.Message;
+                return response;
+            }
+
+            return response;
+        }
+
+        public async Task<ServiceResponse<RecurringDto>> UpdateRecurringTransaction(UpdateRecurringDto updatedRecurring)
+        {
+            var response = new ServiceResponse<RecurringDto>();
+
+            try
+            {
+                Recurring recurring = await _context.Recurrings
+                    .FirstOrDefaultAsync(c => c.Id == updatedRecurring.Id);
+
+                // confirm that current user is owner
+                if (recurring.UserId == Utilities.GetUserId(_httpContextAccessor))
+                {
+                    _mapper.Map<UpdateRecurringDto, Recurring>(updatedRecurring, recurring);
+
+
+                    await _context.SaveChangesAsync();
+                    response.Data = _mapper.Map<RecurringDto>(recurring);
                 }
 
             }

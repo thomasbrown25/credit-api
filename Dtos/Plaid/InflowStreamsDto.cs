@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace financing_api.Dtos.Transaction
+namespace financing_api.Dtos.Plaid
 {
-    public class OutflowStreamsDto
+    public class InflowStreamsDto
     {
         public string AccountId { get; set; }
         public Going.Plaid.Entity.TransactionStreamAmount AverageAmount { get; set; }

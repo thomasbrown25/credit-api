@@ -31,6 +31,19 @@ namespace financing_api.Utils
             }
         }
 
+        public static int GetUserId(IHttpContextAccessor _httpContextAccessor)
+        {
+            try
+            {
+                return int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return 0;
+            }
+        }
+
         public static string[] GetAccountIds(IReadOnlyList<Going.Plaid.Entity.Account> accounts)
         {
             string[] accountIds = new string[accounts.Count()];

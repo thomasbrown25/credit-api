@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using financing_api.Dtos.Transaction;
 using financing_api.Services.PlaidService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -52,6 +53,19 @@ namespace financing_api.Controllers
         )
         {
             var response = await _plaidService.PublicTokenExchange(publicToken);
+
+            if (!response.Success)
+            { // need to set this to server error
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+
+        [Authorize]
+        [HttpGet("recurring")] // Gets all transactions for all accounts
+        public async Task<ActionResult<ServiceResponse<GetRecurringDto>>> GetRecurringTransactions()
+        {
+            var response = await _plaidService.GetRecurringTransactions();
 
             if (!response.Success)
             { // need to set this to server error

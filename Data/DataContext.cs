@@ -42,5 +42,6 @@ namespace financing_api.Data
         public DbSet<Weapon> Weapons { get; set; }
         public DbSet<Skill> Skills { get; set; }
         public DbSet<Account> Accounts { get; set; }
+        public DbSet<Recurring> Recurrings { get; set; }
     }
 }
