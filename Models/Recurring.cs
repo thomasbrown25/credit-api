@@ -22,6 +22,6 @@ namespace financing_api.Models
         public decimal LastAmount { get; set; }
         public bool IsActive { get; set; }
         public string Status { get; set; }
-
+        public bool InternalTransfer { get; set; } = false;
     }
 }

@@ -54,6 +54,8 @@ namespace financing_api.Services.TransactionsService
             {
                 response.Data = new GetTransactionsDto();
                 response.Data.Transactions = new List<TransactionDto>();
+                response.Data.Expenses = new List<TransactionDto>();
+                response.Data.Income = new List<TransactionDto>();
                 response.Data.Accounts = new List<AccountDto>();
 
                 // Get user for accessToken
@@ -104,6 +106,18 @@ namespace financing_api.Services.TransactionsService
                     transactionDto.Categories = transaction.Category;
 
                     response.Data.Transactions.Add(transactionDto);
+
+                    if (transaction.Category.Count > 1 && transaction.Category[1] == "Internal Account Transfer")
+                        continue;
+
+                    if (transaction.Amount > 0)
+                    {
+                        response.Data.Expenses.Add(transactionDto);
+                    }
+                    else
+                    {
+                        response.Data.Income.Add(transactionDto);
+                    }
                 }
 
                 foreach (var account in result.Accounts)
@@ -225,9 +239,10 @@ namespace financing_api.Services.TransactionsService
         }
 
         // Get Current Spend for the month from Plaid API
-        public async Task<ServiceResponse<decimal>> GetCurrentSpendForMonth()
+        public async Task<ServiceResponse<CurrentMonthDto>> GetCurrentSpendForMonth()
         {
-            var response = new ServiceResponse<decimal>();
+            var response = new ServiceResponse<CurrentMonthDto>();
+            response.Data = new CurrentMonthDto();
 
             // Get user for accessToken
             var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
@@ -262,20 +277,30 @@ namespace financing_api.Services.TransactionsService
 
             foreach (var transaction in result.Transactions)
             {
+                if (transaction.Category.Count > 1 && transaction.Category[1] == "Internal Account Transfer")
+                    continue;
 
                 if (transaction.Amount > 0)
                 {
-                    response.Data += transaction.Amount;
+                    response.Data.Expense += transaction.Amount;
+                }
+                else
+                {
+                    response.Data.Income += transaction.Amount;
                 }
             }
+
+            response.Data.Expense = response.Data.Expense * -1;
+            response.Data.Income = response.Data.Income * -1;
 
             return response;
         }
 
         // Get Recurring Transactions
-        public async Task<ServiceResponse<List<GetRecurringDto>>> GetRecurringTransactions()
+        public async Task<ServiceResponse<GetRecurringDto>> GetRecurringTransactions()
         {
-            var response = new ServiceResponse<List<GetRecurringDto>>();
+            var response = new ServiceResponse<GetRecurringDto>();
+            response.Data = new GetRecurringDto();
 
             try
             {
@@ -293,7 +318,20 @@ namespace financing_api.Services.TransactionsService
                     .Where(r => r.UserId == user.Id)
                     .ToListAsync();
 
-                response.Data = dbRecurrings.Select(r => _mapper.Map<GetRecurringDto>(r)).ToList();
+                response.Data.Transactions = dbRecurrings.Select(r => _mapper.Map<RecurringDto>(r)).ToList();
+
+                response.Data.Income = dbRecurrings
+                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
+                                            .Where(r => r.InternalTransfer == false)
+                                            .Select(r => _mapper.Map<RecurringDto>(r))
+                                            .ToList();
+
+                response.Data.Expense = dbRecurrings
+                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
+                                            .Where(r => r.InternalTransfer == false)
+                                            .Select(r => _mapper.Map<RecurringDto>(r))
+                                            .ToList();
+
             }
             catch (System.Exception ex)
             {
@@ -374,7 +412,7 @@ namespace financing_api.Services.TransactionsService
                         recurring.UserId = user.Id;
                         recurring.StreamId = inflowStream.StreamId;
                         recurring.AccountId = inflowStream.AccountId;
-                        recurring.Type = "Income";
+                        recurring.Type = Enum.GetName<EType>(EType.Income); ;
                         recurring.Category = inflowStream.Category[0];
                         recurring.Description = inflowStream.Description;
                         recurring.MerchantName = inflowStream.MerchantName;
@@ -405,7 +443,7 @@ namespace financing_api.Services.TransactionsService
                         recurring.UserId = user.Id;
                         recurring.StreamId = outflowStream.StreamId;
                         recurring.AccountId = outflowStream.AccountId;
-                        recurring.Type = "Expense";
+                        recurring.Type = Enum.GetName<EType>(EType.Expense);
                         recurring.Category = outflowStream.Category[0];
                         recurring.Description = outflowStream.Description;
                         recurring.MerchantName = outflowStream.MerchantName;

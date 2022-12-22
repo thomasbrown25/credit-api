@@ -7,16 +7,8 @@ namespace financing_api.Dtos.Transaction
 {
     public class GetRecurringDto
     {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public string StreamId { get; set; }
-        public string AccountId { get; set; }
-        public string Type { get; set; }
-        public string Category { get; set; }
-        public string Description { get; set; }
-        public string? MerchantName { get; set; }
-        public string LastDate { get; set; }
-        public string Frequency { get; set; }
-        public decimal LastAmount { get; set; }
+        public List<RecurringDto> Transactions { get; set; }
+        public List<RecurringDto> Income { get; set; }
+        public List<RecurringDto> Expense { get; set; }
     }
 }
