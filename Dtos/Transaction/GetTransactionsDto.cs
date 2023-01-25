@@ -10,6 +10,7 @@ namespace financing_api.Dtos.Transaction
     {
         public int Id { get; set; }
         public List<TransactionDto> Transactions { get; set; }
+        public List<TransactionDto> RecentTransactions { get; set; }
         public List<TransactionDto> Expenses { get; set; }
         public List<TransactionDto> Income { get; set; }
         public List<AccountDto> Accounts { get; set; }

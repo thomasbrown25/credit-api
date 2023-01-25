@@ -13,10 +13,12 @@ namespace financing_api.Dtos.Transaction
         public string AccountId { get; set; }
         public string Type { get; set; }
         public string Category { get; set; }
+        public IReadOnlyList<string>? Categories { get; set; }
         public string Description { get; set; }
         public string? MerchantName { get; set; }
-        public string FirstDate { get; set; }
-        public string LastDate { get; set; }
+        public DateTime FirstDate { get; set; }
+        public DateTime LastDate { get; set; }
+        public DateTime DueDate { get; set; }
         public string Frequency { get; set; }
         public decimal LastAmount { get; set; }
         public bool IsActive { get; set; }

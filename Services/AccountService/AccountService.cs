@@ -64,7 +64,7 @@ namespace financing_api.Services.AccountService
                         Name = account.Name,
                         Mask = account.Mask,
                         OfficialName = account.OfficialName,
-                        Type = account.Type,
+                        Type = account.Subtype?.ToString(),
                         Subtype = account.Subtype,
                     };
 

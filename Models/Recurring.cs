@@ -15,9 +15,9 @@ namespace financing_api.Models
         public string Category { get; set; }
         public string? Description { get; set; }
         public string? MerchantName { get; set; }
-        public string FirstDate { get; set; }
-        public string LastDate { get; set; }
-        public string? Due { get; set; }
+        public DateTime FirstDate { get; set; }
+        public DateTime LastDate { get; set; }
+        public DateTime? DueDate { get; set; }
         public string Frequency { get; set; }
         public decimal LastAmount { get; set; }
         public bool IsActive { get; set; }

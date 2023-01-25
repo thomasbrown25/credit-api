@@ -54,6 +54,7 @@ namespace financing_api.Services.TransactionsService
             {
                 response.Data = new GetTransactionsDto();
                 response.Data.Transactions = new List<TransactionDto>();
+                response.Data.RecentTransactions = new List<TransactionDto>();
                 response.Data.Expenses = new List<TransactionDto>();
                 response.Data.Income = new List<TransactionDto>();
                 response.Data.Accounts = new List<AccountDto>();
@@ -93,6 +94,7 @@ namespace financing_api.Services.TransactionsService
                     return response;
                 }
 
+                int i = 0;
                 foreach (var transaction in result.Transactions)
                 {
                     var transactionDto = new TransactionDto();
@@ -107,6 +109,11 @@ namespace financing_api.Services.TransactionsService
 
                     response.Data.Transactions.Add(transactionDto);
 
+                    if (i < 11)
+                    {
+                        response.Data.RecentTransactions.Add(transactionDto);
+                    }
+
                     if (transaction.Category.Count > 1 && transaction.Category[1] == "Internal Account Transfer")
                         continue;
 
@@ -118,6 +125,7 @@ namespace financing_api.Services.TransactionsService
                     {
                         response.Data.Income.Add(transactionDto);
                     }
+                    i++;
                 }
 
                 foreach (var account in result.Accounts)
@@ -128,7 +136,7 @@ namespace financing_api.Services.TransactionsService
                     accountDto.Name = account.Name;
                     accountDto.Mask = account.Mask;
                     accountDto.OfficialName = account.OfficialName;
-                    accountDto.Type = account.Type;
+                    accountDto.Type = account.Subtype?.ToString();
 
                     accountDto.Balance = new AccountBalanceDto();
 
@@ -322,14 +330,16 @@ namespace financing_api.Services.TransactionsService
 
                 response.Data.Income = dbRecurrings
                                             .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
-                                            .Where(r => r.InternalTransfer == false)
+                                            .Where(r => r.InternalTransfer == false && r.IsActive == true)
                                             .Select(r => _mapper.Map<RecurringDto>(r))
+                                            .OrderBy(r => r.LastDate)
                                             .ToList();
 
                 response.Data.Expense = dbRecurrings
                                             .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
-                                            .Where(r => r.InternalTransfer == false)
+                                            .Where(r => r.InternalTransfer == false && r.IsActive == true)
                                             .Select(r => _mapper.Map<RecurringDto>(r))
+                                            .OrderBy(r => r.LastDate)
                                             .ToList();
 
             }
@@ -407,21 +417,7 @@ namespace financing_api.Services.TransactionsService
 
                     if (dbRecurring is null)
                     {
-                        var recurring = new RecurringDto();
-
-                        recurring.UserId = user.Id;
-                        recurring.StreamId = inflowStream.StreamId;
-                        recurring.AccountId = inflowStream.AccountId;
-                        recurring.Type = Enum.GetName<EType>(EType.Income); ;
-                        recurring.Category = inflowStream.Category[0];
-                        recurring.Description = inflowStream.Description;
-                        recurring.MerchantName = inflowStream.MerchantName;
-                        recurring.FirstDate = inflowStream.FirstDate.ToDateTime(TimeOnly.Parse("00:00:00")).ToString();
-                        recurring.LastDate = inflowStream.LastDate.ToDateTime(TimeOnly.Parse("00:00:00")).ToString();
-                        recurring.Frequency = inflowStream.Frequency.ToString();
-                        recurring.LastAmount = inflowStream.LastAmount.Amount;
-                        recurring.IsActive = inflowStream.IsActive;
-                        recurring.Status = inflowStream.Status.ToString();
+                        var recurring = Helper.MapPlaidStream(new RecurringDto(), inflowStream, user, EType.Income);
 
                         // Map recurring with recurringDto db
                         Recurring recurringDb = _mapper.Map<Recurring>(recurring);
@@ -438,21 +434,7 @@ namespace financing_api.Services.TransactionsService
 
                     if (dbRecurring is null)
                     {
-                        var recurring = new RecurringDto();
-
-                        recurring.UserId = user.Id;
-                        recurring.StreamId = outflowStream.StreamId;
-                        recurring.AccountId = outflowStream.AccountId;
-                        recurring.Type = Enum.GetName<EType>(EType.Expense);
-                        recurring.Category = outflowStream.Category[0];
-                        recurring.Description = outflowStream.Description;
-                        recurring.MerchantName = outflowStream.MerchantName;
-                        recurring.FirstDate = outflowStream.FirstDate.ToDateTime(TimeOnly.Parse("00:00:00")).ToString();
-                        recurring.LastDate = outflowStream.LastDate.ToDateTime(TimeOnly.Parse("00:00:00")).ToString();
-                        recurring.Frequency = outflowStream.Frequency.ToString();
-                        recurring.LastAmount = outflowStream.LastAmount.Amount;
-                        recurring.IsActive = outflowStream.IsActive;
-                        recurring.Status = outflowStream.Status.ToString();
+                        var recurring = Helper.MapPlaidStream(new RecurringDto(), outflowStream, user, EType.Expense);
 
                         // Map recurring with recurringDto db
                         Recurring recurringDb = _mapper.Map<Recurring>(recurring);
