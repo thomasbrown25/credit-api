@@ -3,20 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using financing_api.Data;
-using financing_api.Dtos.Liability;
+using financing_api.Dtos.Liabilities;
 using financing_api.Utils;
 using Going.Plaid;
 
-namespace financing_api.Services.LiabilityService
+namespace financing_api.Services.LiabilitiesService
 {
-    public class LiabilityService : ILiabilityService
+    public class LiabilitiesService : ILiabilitiesService
     {
         private readonly DataContext _context;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly PlaidClient _client;
 
-        public LiabilityService(
+        public LiabilitiesService(
             DataContext context,
             IConfiguration configuration,
             IHttpContextAccessor httpContextAccessor,
@@ -29,12 +29,12 @@ namespace financing_api.Services.LiabilityService
             _client = new PlaidClient(Going.Plaid.Environment.Development);
         }
 
-        public async Task<ServiceResponse<GetLiabilityDto>> GetLiabilities()
+        public async Task<ServiceResponse<GetLiabilitiesDto>> GetLiabilities()
         {
-            var response = new ServiceResponse<GetLiabilityDto>();
+            var response = new ServiceResponse<GetLiabilitiesDto>();
             try
             {
-                response.Data = new GetLiabilityDto();
+                response.Data = new GetLiabilitiesDto();
                 response.Data.Liabilities = new List<string>();
 
                 // Get user for accessToken
@@ -52,9 +52,21 @@ namespace financing_api.Services.LiabilityService
                     ClientId = _configuration["PlaidClientId"],
                     Secret = _configuration["PlaidSecret"],
                     AccessToken = user.AccessToken,
+                    Options = new Going.Plaid.Entity.LiabilitiesGetRequestOptions()
+                    {
+                        AccountIds = new List<string>() { "oNnb8R4NeBhkgm6nZzykcvKV3y7k4mT4oBQPg" }
+                    }
                 };
 
                 var result = await _client.LiabilitiesGetAsync(request);
+
+                if (result is not null && result.Error is not null)
+                {
+                    Console.WriteLine("Plaid Error: " + result.Error.ErrorMessage);
+                    response.Success = false;
+                    response.Message = result.Error.ErrorMessage;
+                    return response;
+                }
 
                 // foreach (var account in result.Accounts)
                 // {

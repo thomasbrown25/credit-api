@@ -330,16 +330,16 @@ namespace financing_api.Services.TransactionsService
 
                 response.Data.Income = dbRecurrings
                                             .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
-                                            .Where(r => r.InternalTransfer == false && r.IsActive == true)
+                                            .Where(r => r.IsActive == true)
                                             .Select(r => _mapper.Map<RecurringDto>(r))
-                                            .OrderBy(r => r.LastDate)
+                                            .OrderBy(r => r.DueDate)
                                             .ToList();
 
                 response.Data.Expense = dbRecurrings
                                             .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
-                                            .Where(r => r.InternalTransfer == false && r.IsActive == true)
+                                            .Where(r => r.IsActive == true)
                                             .Select(r => _mapper.Map<RecurringDto>(r))
-                                            .OrderBy(r => r.LastDate)
+                                            .OrderBy(r => r.DueDate)
                                             .ToList();
 
             }
@@ -411,36 +411,40 @@ namespace financing_api.Services.TransactionsService
 
                 foreach (var inflowStream in RecurringResponse.InflowStreams)
                 {
-
-                    var dbRecurring = await _context.Recurrings
-                        .FirstOrDefaultAsync(r => r.StreamId == inflowStream.StreamId);
-
-                    if (dbRecurring is null)
+                    if (!inflowStream.Category.Contains("Internal Account Transfer"))
                     {
-                        var recurring = Helper.MapPlaidStream(new RecurringDto(), inflowStream, user, EType.Income);
+                        var dbRecurring = await _context.Recurrings
+                            .FirstOrDefaultAsync(r => r.StreamId == inflowStream.StreamId);
 
-                        // Map recurring with recurringDto db
-                        Recurring recurringDb = _mapper.Map<Recurring>(recurring);
-                        _context.Recurrings.Add(recurringDb);
+                        if (dbRecurring is null)
+                        {
+                            var recurring = Helper.MapPlaidStream(new RecurringDto(), inflowStream, user, EType.Income);
+
+                            // Map recurring with recurringDto db
+                            Recurring recurringDb = _mapper.Map<Recurring>(recurring);
+                            _context.Recurrings.Add(recurringDb);
+                        }
                     }
-
                 }
 
                 foreach (var outflowStream in RecurringResponse.OutflowStreams)
                 {
-
-                    var dbRecurring = await _context.Recurrings
-                        .FirstOrDefaultAsync(r => r.StreamId == outflowStream.StreamId);
-
-                    if (dbRecurring is null)
+                    if (!outflowStream.Category.Contains("Internal Account Transfer"))
                     {
-                        var recurring = Helper.MapPlaidStream(new RecurringDto(), outflowStream, user, EType.Expense);
 
-                        // Map recurring with recurringDto db
-                        Recurring recurringDb = _mapper.Map<Recurring>(recurring);
-                        _context.Recurrings.Add(recurringDb);
+
+                        var dbRecurring = await _context.Recurrings
+                            .FirstOrDefaultAsync(r => r.StreamId == outflowStream.StreamId);
+
+                        if (dbRecurring is null)
+                        {
+                            var recurring = Helper.MapPlaidStream(new RecurringDto(), outflowStream, user, EType.Expense);
+
+                            // Map recurring with recurringDto db
+                            Recurring recurringDb = _mapper.Map<Recurring>(recurring);
+                            _context.Recurrings.Add(recurringDb);
+                        }
                     }
-
                 }
 
                 // save to Db

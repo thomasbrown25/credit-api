@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace financing_api.Dtos.Liability
+namespace financing_api.Dtos.Liabilities
 {
-    public class GetLiabilityDto
+    public class GetLiabilitiesDto
     {
         public List<string> Liabilities { get; set; }
     }

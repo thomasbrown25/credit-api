@@ -20,6 +20,7 @@ using financing_api.Services.AccountService;
 using Going.Plaid;
 using financing_api.Shared;
 using Microsoft.Extensions.Configuration.Yaml;
+using financing_api.Services.LiabilitiesService;
 
 var builder = WebApplication.CreateBuilder(args);
 var configBuilder = new ConfigurationBuilder();
@@ -99,6 +100,7 @@ services.AddScoped<ICharacterService, CharacterService>();
 services.AddScoped<IWeaponService, WeaponService>();
 services.AddScoped<ITransactionsService, TransactionsService>();
 services.AddScoped<IAccountService, AccountService>();
+services.AddScoped<ILiabilitiesService, LiabilitiesService>();
 
 // Authentication
 services
