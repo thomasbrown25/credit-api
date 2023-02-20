@@ -18,5 +18,6 @@ namespace financing_api.Dtos.Transaction
         public HashSet<string> CategoryLabels { get; set; }
         public HashSet<decimal> CategoryAmounts { get; set; }
         public decimal CurrentSpendAmount { get; set; }
+        public decimal? CashAmount { get; set; }
     }
 }

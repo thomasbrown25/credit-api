@@ -58,6 +58,7 @@ namespace financing_api.Services.TransactionsService
                 response.Data.Expenses = new List<TransactionDto>();
                 response.Data.Income = new List<TransactionDto>();
                 response.Data.Accounts = new List<AccountDto>();
+                response.Data.CashAmount = new decimal?();
 
                 // Get user for accessToken
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
@@ -128,6 +129,8 @@ namespace financing_api.Services.TransactionsService
                     i++;
                 }
 
+                decimal? cashAmount = 0;
+
                 foreach (var account in result.Accounts)
                 {
                     var accountDto = new AccountDto();
@@ -144,8 +147,12 @@ namespace financing_api.Services.TransactionsService
                     accountDto.Balance.Current = account.Balances.Current;
                     accountDto.Balance.Limit = account.Balances.Limit;
 
+                    cashAmount = cashAmount + account.Balances.Available;
+
                     response.Data.Accounts.Add(accountDto);
                 }
+                response.Data.CashAmount = cashAmount;
+                cashAmount = 0;
             }
             catch (System.Exception ex)
             {

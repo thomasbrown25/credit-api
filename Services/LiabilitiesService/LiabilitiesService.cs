@@ -52,10 +52,10 @@ namespace financing_api.Services.LiabilitiesService
                     ClientId = _configuration["PlaidClientId"],
                     Secret = _configuration["PlaidSecret"],
                     AccessToken = user.AccessToken,
-                    Options = new Going.Plaid.Entity.LiabilitiesGetRequestOptions()
-                    {
-                        AccountIds = new List<string>() { "oNnb8R4NeBhkgm6nZzykcvKV3y7k4mT4oBQPg" }
-                    }
+                    // Options = new Going.Plaid.Entity.LiabilitiesGetRequestOptions()
+                    // {
+                    //     AccountIds = new List<string>() { "oNnb8R4NeBhkgm6nZzykcvKV3y7k4mT4oBQPg" }
+                    // }
                 };
 
                 var result = await _client.LiabilitiesGetAsync(request);
