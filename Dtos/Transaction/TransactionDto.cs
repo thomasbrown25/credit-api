@@ -14,6 +14,6 @@ namespace financing_api.Dtos.Transaction
         public decimal Amount { get; set; }
         public IReadOnlyList<string>? Categories { get; set; }
         public bool Pending { get; set; }
-        public DateTime Date { get; set; }
+        public string Date { get; set; }
     }
 }

@@ -105,7 +105,7 @@ namespace financing_api.Services.TransactionsService
                     transactionDto.MerchantName = transaction.MerchantName;
                     transactionDto.Amount = transaction.Amount;
                     transactionDto.Pending = transaction.Pending;
-                    transactionDto.Date = transaction.Date.ToDateTime(TimeOnly.Parse("00:00:00"));
+                    transactionDto.Date = transaction.Date.ToString();
                     transactionDto.Categories = transaction.Category;
 
                     response.Data.Transactions.Add(transactionDto);
@@ -222,7 +222,7 @@ namespace financing_api.Services.TransactionsService
                     transactionDto.Name = transaction.Name;
                     transactionDto.Amount = transaction.Amount;
                     transactionDto.Pending = transaction.Pending;
-                    transactionDto.Date = transaction.Date.ToDateTime(TimeOnly.Parse("00:00:00"));
+                    transactionDto.Date = transaction.Date.ToString();
                     transactionDto.Categories = transaction.Category;
 
                     if (!response.Data.Categories.ContainsKey(transaction.Category[0]))

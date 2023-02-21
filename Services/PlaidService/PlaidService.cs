@@ -64,7 +64,7 @@ namespace financing_api.Services.PlaidService
                         Language = Language.English,
                         CountryCodes = new CountryCode[] { CountryCode.Us },
                         User = plaidUser,
-                        Products = new Products[] { Products.Auth, Products.Transactions }
+                        Products = new Products[] { Products.Transactions, Products.Liabilities }
                     }
                 );
 
