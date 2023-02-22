@@ -57,7 +57,8 @@ namespace financing_api.Services.TransactionsService
                 response.Data.RecentTransactions = new List<TransactionDto>();
                 response.Data.Expenses = new List<TransactionDto>();
                 response.Data.Income = new List<TransactionDto>();
-                response.Data.Accounts = new List<AccountDto>();
+                response.Data.CashAccounts = new List<AccountDto>();
+                response.Data.CreditAccounts = new List<AccountDto>();
                 response.Data.CashAmount = new decimal?();
 
                 // Get user for accessToken
@@ -130,6 +131,7 @@ namespace financing_api.Services.TransactionsService
                 }
 
                 decimal? cashAmount = 0;
+                decimal? creditAmount = 0;
 
                 foreach (var account in result.Accounts)
                 {
@@ -147,12 +149,21 @@ namespace financing_api.Services.TransactionsService
                     accountDto.Balance.Current = account.Balances.Current;
                     accountDto.Balance.Limit = account.Balances.Limit;
 
-                    cashAmount = cashAmount + account.Balances.Available;
-
-                    response.Data.Accounts.Add(accountDto);
+                    if (account.Subtype == AccountSubtype.CreditCard)
+                    {
+                        cashAmount = cashAmount + account.Balances.Current;
+                        response.Data.CreditAccounts.Add(accountDto);
+                    }
+                    else
+                    {
+                        cashAmount = cashAmount + account.Balances.Available;
+                        response.Data.CashAccounts.Add(accountDto);
+                    }
                 }
                 response.Data.CashAmount = cashAmount;
+                response.Data.CreditAmount = creditAmount;
                 cashAmount = 0;
+                creditAmount = 0;
             }
             catch (System.Exception ex)
             {
@@ -172,7 +183,7 @@ namespace financing_api.Services.TransactionsService
             {
                 response.Data = new GetTransactionsDto();
                 response.Data.Transactions = new List<TransactionDto>();
-                response.Data.Accounts = new List<AccountDto>();
+                //response.Data.Accounts = new List<AccountDto>();
                 response.Data.Categories = new Dictionary<string, decimal>();
                 response.Data.CategoryLabels = new HashSet<string>();
                 response.Data.CategoryAmounts = new HashSet<decimal>();
@@ -333,7 +344,7 @@ namespace financing_api.Services.TransactionsService
                     .Where(r => r.UserId == user.Id)
                     .ToListAsync();
 
-                response.Data.Transactions = dbRecurrings.Select(r => _mapper.Map<RecurringDto>(r)).ToList();
+                response.Data.Transactions = dbRecurrings.Select(r => _mapper.Map<RecurringDto>(r)).OrderByDescending(r => r.DueDate).ToList();
 
                 response.Data.Income = dbRecurrings
                                             .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
@@ -434,9 +445,11 @@ namespace financing_api.Services.TransactionsService
                     }
                 }
 
+                _context.Recurrings.RemoveRange(_context.Recurrings.ToList());
+
                 foreach (var outflowStream in RecurringResponse.OutflowStreams)
                 {
-                    if (!outflowStream.Category.Contains("Internal Account Transfer"))
+                    if (!outflowStream.Category.Contains("Internal Account Transfer") && !outflowStream.Category.Contains("Payroll"))
                     {
 
 
