@@ -36,10 +36,10 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
-        [HttpGet("recent")]
-        public async Task<ActionResult<ServiceResponse<string>>> GetRecentTransactions(uint count)
+        [HttpPost("refresh")]
+        public async Task<ActionResult<ServiceResponse<GetTransactionsDto>>> RefreshTransactions()
         {
-            var response = await _transactionsService.GetRecentTransactions(count);
+            var response = await _transactionsService.RefreshTransactions();
 
             if (!response.Success)
             { // need to set this to server error
@@ -49,7 +49,7 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
-        [HttpGet("current-spend-month")] // Gets all transactions for all accounts
+        [HttpGet("current-spend-month")]
         public async Task<ActionResult<ServiceResponse<CurrentMonthDto>>> GetCurrentSpendForMonth()
         {
             var response = await _transactionsService.GetCurrentSpendForMonth();
@@ -62,7 +62,7 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
-        [HttpGet("recurring")] // Gets all transactions for all accounts
+        [HttpGet("recurring")]
         public async Task<ActionResult<ServiceResponse<GetRecurringDto>>> GetRecurringTransactions()
         {
             var response = await _transactionsService.GetRecurringTransactions();
@@ -75,7 +75,33 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
-        [HttpPost("recurring")] // Adds recurring transaction
+        [HttpGet("expenses")]
+        public async Task<ActionResult<ServiceResponse<GetRecurringDto>>> GetExpenses()
+        {
+            var response = await _transactionsService.GetExpenses();
+
+            if (!response.Success)
+            { // need to set this to server error
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+
+        [Authorize]
+        [HttpGet("account-transactions/{accountId}")]
+        public async Task<ActionResult<ServiceResponse<GetRecurringDto>>> GetAccountTransactions(string accountId)
+        {
+            var response = await _transactionsService.GetAccountTransactions(accountId);
+
+            if (!response.Success)
+            { // need to set this to server error
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+
+        [Authorize]
+        [HttpPost("recurring")]
         public async Task<ActionResult<ServiceResponse<List<RecurringDto>>>> AddRecurringTransaction(AddRecurringDto newRecurring)
         {
             var response = await _transactionsService.AddRecurringTransaction(newRecurring);
@@ -88,7 +114,7 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
-        [HttpPost("recurring/update")] // Update recurring transaction
+        [HttpPost("recurring/update")]
         public async Task<ActionResult<ServiceResponse<RecurringDto>>> UpdateRecurringTransaction(UpdateRecurringDto updatedRecurring)
         {
             var response = await _transactionsService.UpdateRecurringTransaction(updatedRecurring);
@@ -101,7 +127,7 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
-        [HttpPost("recurring/refresh")] // Update recurring transaction
+        [HttpPost("recurring/refresh")]
         public async Task<ActionResult<ServiceResponse<List<RecurringDto>>>> RefreshRecurringTransactions()
         {
             var response = await _transactionsService.RefreshRecurringTransactions();

@@ -12,7 +12,6 @@ using AutoMapper;
 using Going.Plaid.Transactions;
 using Microsoft.Extensions.Options;
 using financing_api.Shared;
-using Going.Plaid.Entity;
 using financing_api.Dtos.Account;
 using financing_api.Utils;
 using System.Collections;
@@ -45,7 +44,6 @@ namespace financing_api.Services.TransactionsService
             _mapper = mapper;
         }
 
-        // Get All Transactions from Plaid
         public async Task<ServiceResponse<GetTransactionsDto>> GetTransactions()
         {
             var response = new ServiceResponse<GetTransactionsDto>();
@@ -56,7 +54,7 @@ namespace financing_api.Services.TransactionsService
                 response.Data.Transactions = new List<TransactionDto>();
                 response.Data.RecentTransactions = new List<TransactionDto>();
                 response.Data.Expenses = new List<TransactionDto>();
-                response.Data.Income = new List<TransactionDto>();
+                response.Data.Incomes = new List<TransactionDto>();
                 response.Data.CashAccounts = new List<AccountDto>();
                 response.Data.CreditAccounts = new List<AccountDto>();
                 response.Data.CashAmount = new decimal?();
@@ -75,7 +73,7 @@ namespace financing_api.Services.TransactionsService
 
                 var request = new Going.Plaid.Transactions.TransactionsGetRequest()
                 {
-                    Options = new TransactionsGetRequestOptions()
+                    Options = new Going.Plaid.Entity.TransactionsGetRequestOptions()
                     {
                         Count = 500
                     },
@@ -99,22 +97,7 @@ namespace financing_api.Services.TransactionsService
                 int i = 0;
                 foreach (var transaction in result.Transactions)
                 {
-                    var transactionDto = new TransactionDto();
-
-                    transactionDto.AccountId = transaction.AccountId;
-                    transactionDto.Name = transaction.Name;
-                    transactionDto.MerchantName = transaction.MerchantName;
-                    transactionDto.Amount = transaction.Amount;
-                    transactionDto.Pending = transaction.Pending;
-                    transactionDto.Date = transaction.Date.ToString();
-                    transactionDto.Categories = transaction.Category;
-
-                    response.Data.Transactions.Add(transactionDto);
-
-                    if (i < 11)
-                    {
-                        response.Data.RecentTransactions.Add(transactionDto);
-                    }
+                    var transactionDto = Helper.MapPlaidStream(new TransactionDto(), transaction, user);
 
                     if (transaction.Category.Count > 1 && transaction.Category[1] == "Internal Account Transfer")
                         continue;
@@ -125,10 +108,16 @@ namespace financing_api.Services.TransactionsService
                     }
                     else
                     {
-                        response.Data.Income.Add(transactionDto);
+                        response.Data.Incomes.Add(transactionDto);
                     }
                     i++;
                 }
+
+                var dbTransactions = await _context.Transactions
+                                   .Where(c => c.UserId == user.Id)
+                                   .ToListAsync();
+
+                response.Data.Transactions = dbTransactions.Select(c => _mapper.Map<TransactionDto>(c)).ToList();
 
                 decimal? cashAmount = 0;
                 decimal? creditAmount = 0;
@@ -149,9 +138,9 @@ namespace financing_api.Services.TransactionsService
                     accountDto.Balance.Current = account.Balances.Current;
                     accountDto.Balance.Limit = account.Balances.Limit;
 
-                    if (account.Subtype == AccountSubtype.CreditCard)
+                    if (account.Subtype == Going.Plaid.Entity.AccountSubtype.CreditCard)
                     {
-                        cashAmount = cashAmount + account.Balances.Current;
+                        creditAmount = creditAmount + account.Balances.Current;
                         response.Data.CreditAccounts.Add(accountDto);
                     }
                     else
@@ -175,20 +164,15 @@ namespace financing_api.Services.TransactionsService
             return response;
         }
 
-        // Get Recent Transactions
-        public async Task<ServiceResponse<GetTransactionsDto>> GetRecentTransactions(uint count)
+        public async Task<ServiceResponse<GetTransactionsDto>> RefreshTransactions()
         {
             var response = new ServiceResponse<GetTransactionsDto>();
             try
             {
                 response.Data = new GetTransactionsDto();
                 response.Data.Transactions = new List<TransactionDto>();
-                //response.Data.Accounts = new List<AccountDto>();
-                response.Data.Categories = new Dictionary<string, decimal>();
-                response.Data.CategoryLabels = new HashSet<string>();
-                response.Data.CategoryAmounts = new HashSet<decimal>();
 
-                // Get user for accessToken
+                // Get user for accessToken6
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
                 if (user == null || user.AccessToken == null)
@@ -198,24 +182,24 @@ namespace financing_api.Services.TransactionsService
                     return response;
                 }
 
-                Console.WriteLine("Getting plaid client id in recent transactions: " + _configuration["PlaidClientId"]);
+                var startDate = DateTime.Today.AddMonths(-4);
 
                 var request = new Going.Plaid.Transactions.TransactionsGetRequest()
                 {
-                    Options = new TransactionsGetRequestOptions()
+                    Options = new Going.Plaid.Entity.TransactionsGetRequestOptions()
                     {
                         Count = 500
                     },
                     ClientId = _configuration["PlaidClientId"],
                     Secret = _configuration["PlaidSecret"],
                     AccessToken = user.AccessToken,
-                    StartDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1), // gets the first day of the month
+                    StartDate = new DateOnly(startDate.Year, startDate.Month, startDate.Day),
                     EndDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)
                 };
 
                 var result = await _client.TransactionsGetAsync(request);
 
-                if (result.Error is not null)
+                if (result is not null && result.Error is not null)
                 {
                     Console.WriteLine("Plaid Error: " + result.Error.ErrorMessage);
                     response.Success = false;
@@ -223,43 +207,36 @@ namespace financing_api.Services.TransactionsService
                     return response;
                 }
 
-                var categoryList = new Stack<string>();
-
                 foreach (var transaction in result.Transactions)
                 {
-                    var transactionDto = new TransactionDto();
+                    var dbTransaction = await _context.Transactions
+                        .FirstOrDefaultAsync(t => t.TransactionId == transaction.TransactionId);
 
-                    transactionDto.AccountId = transaction.AccountId;
-                    transactionDto.Name = transaction.Name;
-                    transactionDto.Amount = transaction.Amount;
-                    transactionDto.Pending = transaction.Pending;
-                    transactionDto.Date = transaction.Date.ToString();
-                    transactionDto.Categories = transaction.Category;
-
-                    if (!response.Data.Categories.ContainsKey(transaction.Category[0]))
+                    if (dbTransaction is null)
                     {
-                        response.Data.Categories.Add(transaction.Category[0], transaction.Amount);
-                    }
-                    else
-                    {
-                        response.Data.Categories[transaction.Category[0]] = response.Data.Categories[transaction.Category[0]] + transaction.Amount;
-                    }
+                        var transactionDto = Helper.MapPlaidStream(new TransactionDto(), transaction, user);
 
-                    response.Data.Transactions.Add(transactionDto);
+                        Transaction transactionDb = _mapper.Map<Transaction>(transactionDto);
+                        _context.Transactions.Add(transactionDb);
+                    }
                 }
 
-                response.Data.CategoryLabels = response.Data.Categories.Keys.ToHashSet();
-                response.Data.CategoryAmounts = response.Data.Categories.Values.ToHashSet();
+                await _context.SaveChangesAsync();
+
+                var dbTransactions = await _context.Transactions
+                                   .Where(c => c.UserId == user.Id)
+                                   .ToListAsync();
+
+                response.Data.Transactions = dbTransactions.Select(c => _mapper.Map<TransactionDto>(c)).ToList();
 
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Recent Transactions failed: " + ex.Message);
+                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
                 response.Success = false;
-                response.Message = ex.Message;
+                response.Message = ex.Message + " --------- Inner Exception: " + ex.InnerException.Message;
                 return response;
             }
-
 
             return response;
         }
@@ -346,14 +323,14 @@ namespace financing_api.Services.TransactionsService
 
                 response.Data.Transactions = dbRecurrings.Select(r => _mapper.Map<RecurringDto>(r)).OrderByDescending(r => r.DueDate).ToList();
 
-                response.Data.Income = dbRecurrings
+                response.Data.Incomes = dbRecurrings
                                             .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
                                             .Where(r => r.IsActive == true)
                                             .Select(r => _mapper.Map<RecurringDto>(r))
                                             .OrderBy(r => r.DueDate)
                                             .ToList();
 
-                response.Data.Expense = dbRecurrings
+                response.Data.Expenses = dbRecurrings
                                             .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
                                             .Where(r => r.IsActive == true)
                                             .Select(r => _mapper.Map<RecurringDto>(r))
@@ -372,7 +349,47 @@ namespace financing_api.Services.TransactionsService
             return response;
         }
 
-        // Get Recurring Transactions
+
+        public async Task<ServiceResponse<GetRecurringDto>> GetExpenses()
+        {
+            var response = new ServiceResponse<GetRecurringDto>();
+            response.Data = new GetRecurringDto();
+
+            try
+            {
+                // Get user for accessToken
+                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
+                if (user == null || user.AccessToken == null)
+                {
+                    response.Success = false;
+                    response.Message = "User does not have access token";
+                    return response;
+                }
+
+                var dbRecurrings = await _context.Recurrings
+                    .Where(r => r.UserId == user.Id)
+                    .ToListAsync();
+
+                response.Data.Expenses = dbRecurrings
+                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
+                                            .Where(r => r.IsActive == true)
+                                            .Select(r => _mapper.Map<RecurringDto>(r))
+                                            .OrderBy(r => r.DueDate)
+                                            .ToList();
+
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                response.Success = false;
+                response.Message = ex.Message;
+                return response;
+            }
+
+            return response;
+        }
+
         public async Task<ServiceResponse<List<RecurringDto>>> RefreshRecurringTransactions()
         {
             var response = new ServiceResponse<List<RecurringDto>>();
@@ -444,8 +461,6 @@ namespace financing_api.Services.TransactionsService
                         }
                     }
                 }
-
-                _context.Recurrings.RemoveRange(_context.Recurrings.ToList());
 
                 foreach (var outflowStream in RecurringResponse.OutflowStreams)
                 {
@@ -552,5 +567,48 @@ namespace financing_api.Services.TransactionsService
 
             return response;
         }
+
+        public async Task<ServiceResponse<GetTransactionsDto>> GetAccountTransactions(string accountId)
+        {
+            var response = new ServiceResponse<GetTransactionsDto>();
+
+            try
+            {
+                response.Data = new GetTransactionsDto();
+                response.Data.Transactions = new List<TransactionDto>();
+
+                // Get user for accessToken
+                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
+                if (user == null || user.AccessToken == null)
+                {
+                    response.Success = false;
+                    response.Message = "User does not have access token";
+                    return response;
+                }
+
+                var dbTransactions = await _context.Transactions
+                    .Where(r => r.UserId == user.Id)
+                    .ToListAsync();
+
+                response.Data.Transactions = dbTransactions
+                                            .Where(t => t.AccountId == accountId)
+                                            .Select(t => _mapper.Map<TransactionDto>(t))
+                                            .OrderBy(t => t.Date)
+                                            .ToList();
+
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                response.Success = false;
+                response.Message = ex.Message;
+                return response;
+            }
+
+            return response;
+        }
+
+
     }
 }

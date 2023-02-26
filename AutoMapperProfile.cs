@@ -25,7 +25,9 @@ namespace financing_api
             CreateMap<Recurring, RecurringDto>();
             CreateMap<RecurringDto, Recurring>();
             CreateMap<UpdateRecurringDto, Recurring>();
-            CreateMap<Recurring, financing_api.Dtos.Transaction.GetRecurringDto>();
+            CreateMap<Recurring, GetRecurringDto>();
+            CreateMap<TransactionDto, Transaction>();
+            CreateMap<Transaction, TransactionDto>();
         }
     }
 }

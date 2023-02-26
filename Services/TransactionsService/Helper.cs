@@ -58,5 +58,28 @@ namespace financing_api.Services.TransactionsService
                 return null;
             }
         }
+
+        public static TransactionDto MapPlaidStream(TransactionDto transactionDto, Going.Plaid.Entity.Transaction transaction, User user)
+        {
+            try
+            {
+                transactionDto.UserId = user.Id;
+                transactionDto.TransactionId = transaction.TransactionId;
+                transactionDto.AccountId = transaction.AccountId;
+                transactionDto.Name = transaction.Name;
+                transactionDto.MerchantName = transaction.MerchantName;
+                transactionDto.Amount = transaction.Amount;
+                transactionDto.Pending = transaction.Pending;
+                transactionDto.Date = transaction.Date.ToString();
+                transactionDto.Category = transaction.Category.Count > 1 ? transaction.Category[1] : transaction.Category[0];
+
+                return transactionDto;
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+        }
     }
 }

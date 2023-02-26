@@ -12,7 +12,7 @@ namespace financing_api.Dtos.Transaction
         public List<TransactionDto> Transactions { get; set; }
         public List<TransactionDto> RecentTransactions { get; set; }
         public List<TransactionDto> Expenses { get; set; }
-        public List<TransactionDto> Income { get; set; }
+        public List<TransactionDto> Incomes { get; set; }
         public List<AccountDto> CashAccounts { get; set; }
         public List<AccountDto> CreditAccounts { get; set; }
         public Dictionary<string, decimal> Categories { get; set; }

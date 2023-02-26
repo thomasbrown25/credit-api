@@ -8,9 +8,15 @@ namespace financing_api.Models
     public class Transaction
     {
         public int Id { get; set; }
+        public string TransactionId { get; set; }
+        public int UserId { get; set; }
+        public string AccountId { get; set; }
         public string Name { get; set; }
-        public Category? Category { get; set; }
+        public string? MerchantName { get; set; }
+
+        public string Category { get; set; }
         public string Amount { get; set; }
+        public bool Pending { get; set; }
         public DateTime Date { get; set; }
         public DateTime CreatedDate { get; set; }
     }
