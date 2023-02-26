@@ -8,6 +8,7 @@ using financing_api.Dtos.Character;
 using financing_api.Dtos.Skill;
 using financing_api.Dtos.Weapon;
 using financing_api.Dtos.Transaction;
+using financing_api.Dtos.Account;
 
 namespace financing_api
 {
@@ -28,6 +29,8 @@ namespace financing_api
             CreateMap<Recurring, GetRecurringDto>();
             CreateMap<TransactionDto, Transaction>();
             CreateMap<Transaction, TransactionDto>();
+            CreateMap<AccountDto, Account>();
+            CreateMap<Account, AccountDto>();
         }
     }
 }

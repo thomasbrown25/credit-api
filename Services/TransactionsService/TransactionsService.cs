@@ -62,13 +62,6 @@ namespace financing_api.Services.TransactionsService
                 // Get user for accessToken
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                if (user == null || user.AccessToken == null)
-                {
-                    response.Success = false;
-                    response.Message = "User does not have access token";
-                    return response;
-                }
-
                 var startDate = DateTime.Today.AddMonths(-4);
 
                 var request = new Going.Plaid.Transactions.TransactionsGetRequest()
@@ -126,17 +119,14 @@ namespace financing_api.Services.TransactionsService
                 {
                     var accountDto = new AccountDto();
 
-                    accountDto.Id = account.AccountId;
+                    accountDto.AccountId = account.AccountId;
                     accountDto.Name = account.Name;
                     accountDto.Mask = account.Mask;
                     accountDto.OfficialName = account.OfficialName;
                     accountDto.Type = account.Subtype?.ToString();
-
-                    accountDto.Balance = new AccountBalanceDto();
-
-                    accountDto.Balance.Available = account.Balances.Available;
-                    accountDto.Balance.Current = account.Balances.Current;
-                    accountDto.Balance.Limit = account.Balances.Limit;
+                    accountDto.BalanceAvailable = account.Balances.Available;
+                    accountDto.BalanceCurrent = account.Balances.Current;
+                    accountDto.BalanceLimit = account.Balances.Limit;
 
                     if (account.Subtype == Going.Plaid.Entity.AccountSubtype.CreditCard)
                     {
@@ -174,13 +164,6 @@ namespace financing_api.Services.TransactionsService
 
                 // Get user for accessToken6
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
-
-                if (user == null || user.AccessToken == null)
-                {
-                    response.Success = false;
-                    response.Message = "User does not have access token";
-                    return response;
-                }
 
                 var startDate = DateTime.Today.AddMonths(-4);
 
@@ -310,13 +293,6 @@ namespace financing_api.Services.TransactionsService
                 // Get user for accessToken
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                if (user == null || user.AccessToken == null)
-                {
-                    response.Success = false;
-                    response.Message = "User does not have access token";
-                    return response;
-                }
-
                 var dbRecurrings = await _context.Recurrings
                     .Where(r => r.UserId == user.Id)
                     .ToListAsync();
@@ -360,13 +336,6 @@ namespace financing_api.Services.TransactionsService
                 // Get user for accessToken
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                if (user == null || user.AccessToken == null)
-                {
-                    response.Success = false;
-                    response.Message = "User does not have access token";
-                    return response;
-                }
-
                 var dbRecurrings = await _context.Recurrings
                     .Where(r => r.UserId == user.Id)
                     .ToListAsync();
@@ -399,13 +368,6 @@ namespace financing_api.Services.TransactionsService
 
                 // Get user for accessToken6
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
-
-                if (user == null || user.AccessToken == null)
-                {
-                    response.Success = false;
-                    response.Message = "User does not have access token";
-                    return response;
-                }
 
                 // Get Account IDs 
                 var getAccountRequest = new Going.Plaid.Accounts.AccountsGetRequest()
@@ -580,13 +542,6 @@ namespace financing_api.Services.TransactionsService
                 // Get user for accessToken
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                if (user == null || user.AccessToken == null)
-                {
-                    response.Success = false;
-                    response.Message = "User does not have access token";
-                    return response;
-                }
-
                 var dbTransactions = await _context.Transactions
                     .Where(r => r.UserId == user.Id)
                     .ToListAsync();
@@ -594,7 +549,6 @@ namespace financing_api.Services.TransactionsService
                 response.Data.Transactions = dbTransactions
                                             .Where(t => t.AccountId == accountId)
                                             .Select(t => _mapper.Map<TransactionDto>(t))
-                                            .OrderBy(t => t.Date)
                                             .ToList();
 
             }

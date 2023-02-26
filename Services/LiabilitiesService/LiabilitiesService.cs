@@ -40,13 +40,6 @@ namespace financing_api.Services.LiabilitiesService
                 // Get user for accessToken
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                if (user == null || user.AccessToken == null)
-                {
-                    response.Success = false;
-                    response.Message = "User does not have access token";
-                    return response;
-                }
-
                 var request = new Going.Plaid.Liabilities.LiabilitiesGetRequest()
                 {
                     ClientId = _configuration["PlaidClientId"],

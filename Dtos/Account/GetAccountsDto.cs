@@ -9,6 +9,7 @@ namespace financing_api.Dtos.Account
     {
         public int Id { get; set; }
         public List<AccountDto> Accounts { get; set; }
+        public AccountDto Account { get; set; }
 
 
 

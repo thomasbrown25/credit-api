@@ -9,5 +9,7 @@ namespace financing_api.Services.AccountService
     public interface IAccountService
     {
         Task<ServiceResponse<GetAccountsDto>> GetAccountsBalance();
+        Task<ServiceResponse<GetAccountsDto>> GetAccountBalance(string accountId);
+        Task<ServiceResponse<GetAccountsDto>> RefreshAccountsBalance();
     }
 }

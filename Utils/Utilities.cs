@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Acklann.Plaid;
 using financing_api.Data;
 
 namespace financing_api.Utils
@@ -70,20 +69,5 @@ namespace financing_api.Utils
         //     }
         // }
 
-        public static PlaidClient GetPlaidClient(IConfiguration _configuration)
-        {
-            PlaidClient client = null;
-
-            if (_configuration["Plaid:Environment"].ToLower() == "sandbox")
-            {
-                client = new PlaidClient(Acklann.Plaid.Environment.Sandbox);
-            }
-            else if (_configuration["Plaid:Environment"].ToLower() == "development")
-            {
-                client = new PlaidClient(Acklann.Plaid.Environment.Development);
-            }
-
-            return client;
-        }
     }
 }

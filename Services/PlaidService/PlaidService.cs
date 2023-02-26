@@ -42,13 +42,6 @@ namespace financing_api.Services.PlaidService
                 // Get current user from sql db
                 User user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                if (user == null)
-                {
-                    response.Success = false;
-                    response.Message = "User not found.";
-                    return response;
-                }
-
                 // Create plaid user with user id
                 var plaidUser = new LinkTokenCreateRequestUser()
                 {

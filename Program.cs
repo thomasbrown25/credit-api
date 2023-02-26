@@ -21,6 +21,7 @@ using Going.Plaid;
 using financing_api.Shared;
 using Microsoft.Extensions.Configuration.Yaml;
 using financing_api.Services.LiabilitiesService;
+using financing_api.ApiHelper;
 
 var builder = WebApplication.CreateBuilder(args);
 var configBuilder = new ConfigurationBuilder();
@@ -101,6 +102,7 @@ services.AddScoped<IWeaponService, WeaponService>();
 services.AddScoped<ITransactionsService, TransactionsService>();
 services.AddScoped<IAccountService, AccountService>();
 services.AddScoped<ILiabilitiesService, LiabilitiesService>();
+services.AddScoped<IAPI, API>();
 
 // Authentication
 services

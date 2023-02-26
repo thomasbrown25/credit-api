@@ -7,12 +7,16 @@ namespace financing_api.Dtos.Account
 {
     public class AccountDto
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public string AccountId { get; set; }
+        public string? Name { get; set; }
         public string? Mask { get; set; }
         public string? OfficialName { get; set; }
         public string? Type { get; set; }
-        public Going.Plaid.Entity.AccountSubtype? Subtype { get; set; }
-        public AccountBalanceDto Balance { get; set; }
+        public string? Subtype { get; set; }
+        public decimal? BalanceAvailable { get; set; }
+        public decimal? BalanceCurrent { get; set; }
+        public decimal? BalanceLimit { get; set; }
     }
 }

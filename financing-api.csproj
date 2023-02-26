@@ -24,7 +24,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.4.0"/>
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.23.1"/>
     <PackageReference Include="TokenGenerator.Jwt" Version="1.0.2"/>
-    <PackageReference Include="Acklann.Plaid" Version="0.1.4"/>
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="3.0.0-preview"/>
     <PackageReference Include="Azure.Identity" Version="1.7.0"/>
     <PackageReference Include="Going.Plaid" Version="4.15.0"/>
