@@ -563,6 +563,50 @@ namespace financing_api.Services.TransactionsService
             return response;
         }
 
+        public async Task<ServiceResponse<GetRecurringDto>> DeleteIncome(string incomeId)
+        {
+            var response = new ServiceResponse<GetRecurringDto>();
+
+            try
+            {
+                response.Data = new GetRecurringDto();
+                response.Data.Incomes = new List<RecurringDto>();
+
+                // Get user for accessToken
+                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
+                var dbIncome = await _context.Recurrings
+                    .Where(r => r.UserId == user.Id)
+                    .Where(r => r.StreamId == incomeId)
+                    .SingleOrDefaultAsync();
+
+                _context.Recurrings.Remove(dbIncome);
+
+                await _context.SaveChangesAsync();
+
+                var dbRecurrings = await _context.Recurrings
+                    .Where(r => r.UserId == user.Id)
+                    .ToListAsync();
+
+                response.Data.Incomes = dbRecurrings
+                    .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
+                    .Where(r => r.IsActive == true)
+                    .Select(r => _mapper.Map<RecurringDto>(r))
+                    .OrderBy(r => r.DueDate)
+                    .ToList();
+
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                response.Success = false;
+                response.Message = ex.Message;
+                return response;
+            }
+
+            return response;
+        }
+
 
     }
 }

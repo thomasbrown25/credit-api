@@ -61,6 +61,20 @@ namespace financing_api.Services.PlaidService
                     }
                 );
 
+                // var linkResponse = _api.LinkTokenRequest(user);
+
+                // if (linkResponse.Result.Error is not null)
+                // {
+                //     Console.WriteLine(linkResponse.Result.Error.ErrorMessage);
+                //     response.Success = false;
+                //     response.Error = new Error();
+                //     response.Error.ErrorCode = linkResponse.Result.Error.ErrorCode.ToString();
+                //     response.Error.ErrorMessage = linkResponse.Result.Error.ErrorMessage;
+                //     return response;
+                // }
+
+                // response.Data = linkResponse.Result.LinkToken;
+
                 if (result.Error is not null)
                 {
                     Console.WriteLine(result.Error.ErrorMessage);

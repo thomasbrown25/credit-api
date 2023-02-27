@@ -17,5 +17,6 @@ namespace financing_api.Services.TransactionsService
         Task<ServiceResponse<List<RecurringDto>>> RefreshRecurringTransactions();
         Task<ServiceResponse<List<RecurringDto>>> AddRecurringTransaction(AddRecurringDto newRecurring);
         Task<ServiceResponse<RecurringDto>> UpdateRecurringTransaction(UpdateRecurringDto updatedRecurring);
+        Task<ServiceResponse<GetRecurringDto>> DeleteIncome(string incomeId);
     }
 }

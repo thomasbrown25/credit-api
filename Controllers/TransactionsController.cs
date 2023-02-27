@@ -75,6 +75,19 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
+        [HttpDelete("income/{incomeId}")]
+        public async Task<ActionResult<ServiceResponse<GetRecurringDto>>> DeleteIncome(string incomeId)
+        {
+            var response = await _transactionsService.DeleteIncome(incomeId);
+
+            if (!response.Success)
+            { // need to set this to server error
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+
+        [Authorize]
         [HttpGet("expenses")]
         public async Task<ActionResult<ServiceResponse<GetRecurringDto>>> GetExpenses()
         {

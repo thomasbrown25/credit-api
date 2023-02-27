@@ -100,7 +100,7 @@ namespace financing_api.Services.AccountService
 
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                var accountResponse = _api.GetAccounts(user);
+                var accountResponse = _api.GetAccountsRequest(user);
 
                 foreach (var account in accountResponse.Result.Accounts)
                 {
