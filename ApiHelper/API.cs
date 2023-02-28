@@ -19,7 +19,6 @@ namespace financing_api.ApiHelper
         private readonly PlaidCredentials _credentials;
         private readonly PlaidClient _client;
         private readonly IMapper _mapper;
-        private readonly IAPI _api;
 
         public API(
             DataContext context,
@@ -27,8 +26,7 @@ namespace financing_api.ApiHelper
             IHttpContextAccessor httpContextAccessor,
             IOptions<PlaidCredentials> credentials,
             PlaidClient client,
-            IMapper mapper,
-            IAPI api
+            IMapper mapper
         )
         {
             _context = context;
@@ -37,7 +35,6 @@ namespace financing_api.ApiHelper
             _credentials = credentials.Value;
             _client = new PlaidClient(Going.Plaid.Environment.Development);
             _mapper = mapper;
-            _api = api;
         }
 
         public async Task<Going.Plaid.Accounts.AccountsGetResponse> GetAccountsRequest(User user)
