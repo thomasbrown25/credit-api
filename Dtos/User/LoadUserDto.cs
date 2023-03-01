@@ -12,5 +12,6 @@ namespace financing_api.Dtos.User
         public string Lastname { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string AccessToken { get; set; } = string.Empty;
+        public string JWTToken { get; set; } = string.Empty;
     }
 }

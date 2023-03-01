@@ -33,9 +33,10 @@ namespace financing_api.Data
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<ServiceResponse<string>> Register(User user, string password)
+        public async Task<ServiceResponse<LoadUserDto>> Register(User user, string password)
         {
-            ServiceResponse<string> response = new ServiceResponse<string>();
+            var response = new ServiceResponse<LoadUserDto>();
+            response.Data = new LoadUserDto();
 
             try
             {
@@ -54,13 +55,16 @@ namespace financing_api.Data
                 await _context.SaveChangesAsync();
 
                 // after we save user, we create and return the jwt token
-                response.Data = CreateToken(user);
+                response.Data.JWTToken = CreateToken(user);
+
+                response.Data = _mapper.Map<LoadUserDto>(user);
+
             }
             catch (Exception ex)
             {
-                response.Data = ex.Message;
                 Console.WriteLine(ex.Message);
-                throw;
+                response.Success = false;
+                response.Message = ex.Message;
             }
 
             return response;
