@@ -23,5 +23,29 @@ namespace financing_api.Services.AccountService
 
             return accountDto;
         }
+
+        public static void SetAccountTotals(ref ServiceResponse<GetAccountsDto>? response)
+        {
+            decimal? cashAmount = 0;
+            decimal? creditAmount = 0;
+            response.Data.CreditAccounts = new List<AccountDto>();
+            response.Data.CashAccounts = new List<AccountDto>();
+
+            foreach (var account in response.Data.Accounts)
+            {
+                if (account.Subtype.ToLower().Contains("credit"))
+                {
+                    creditAmount = creditAmount + account.BalanceCurrent;
+                    response.Data.CreditAccounts.Add(account);
+                }
+                else
+                {
+                    cashAmount = cashAmount + account.BalanceAvailable;
+                    response.Data.CashAccounts.Add(account);
+                }
+            }
+            response.Data.CashAmount = cashAmount;
+            response.Data.CreditAmount = creditAmount;
+        }
     }
 }

@@ -18,6 +18,6 @@ namespace financing_api.Services.PlaidService
         Task<ServiceResponse<string>> PublicTokenExchange(string linkToken);
 
         // Get Recurring Transactions
-        Task<ServiceResponse<GetRecurringDto>> GetRecurringTransactions();
+        //Task<ServiceResponse<GetRecurringDto>> GetRecurringTransactions();
     }
 }

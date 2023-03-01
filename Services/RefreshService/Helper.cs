@@ -4,14 +4,31 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using financing_api.Data;
+using financing_api.Dtos.Account;
 using financing_api.Dtos.Transaction;
 using Going.Plaid.Entity;
 using Microsoft.EntityFrameworkCore;
 
-namespace financing_api.Services.TransactionsService
+namespace financing_api.Services.RefreshService
 {
-    public static class Helper
+    public class Helper
     {
+        public static AccountDto MapPlaidStream(AccountDto accountDto, Going.Plaid.Entity.Account account, User user)
+        {
+            accountDto.UserId = user.Id;
+            accountDto.AccountId = account.AccountId;
+            accountDto.Name = account.Name;
+            accountDto.Mask = account.Mask;
+            accountDto.OfficialName = account.OfficialName;
+            accountDto.Type = account.Subtype?.ToString();
+            accountDto.Subtype = account.Subtype?.ToString();
+            accountDto.BalanceCurrent = account.Balances.Current;
+            accountDto.BalanceAvailable = account.Balances.Available;
+            accountDto.BalanceLimit = account.Balances.Limit;
+
+            return accountDto;
+        }
+
         public static RecurringDto MapPlaidStream(RecurringDto recurring, TransactionStream stream, User user, EType type)
         {
             try
@@ -85,18 +102,18 @@ namespace financing_api.Services.TransactionsService
             }
         }
 
-        public static async void AddStreams(IReadOnlyList<Going.Plaid.Entity.TransactionStream> inflowStreams, DataContext context, IMapper mapper, User user)
+        public static void AddStreams(IReadOnlyList<Going.Plaid.Entity.TransactionStream> streams, DataContext context, IMapper mapper, User user, EType type)
         {
-            foreach (var inflowStream in inflowStreams)
+            foreach (var stream in streams)
             {
-                if (!inflowStream.Category.Contains("Internal Account Transfer"))
+                if (!stream.Category.Contains("Internal Account Transfer") && (!stream.Category.Contains("Interest")))
                 {
-                    var dbRecurring = await context.Recurrings
-                        .FirstOrDefaultAsync(r => r.StreamId == inflowStream.StreamId);
+                    var dbRecurring = context.Recurrings
+                        .FirstOrDefault(r => r.StreamId == stream.StreamId);
 
                     if (dbRecurring is null)
                     {
-                        var recurring = Helper.MapPlaidStream(new RecurringDto(), inflowStream, user, EType.Income);
+                        var recurring = Helper.MapPlaidStream(new RecurringDto(), stream, user, type);
 
                         // Map recurring with recurringDto db
                         Recurring recurringDb = mapper.Map<Recurring>(recurring);

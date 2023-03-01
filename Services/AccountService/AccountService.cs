@@ -50,6 +50,8 @@ namespace financing_api.Services.AccountService
                                 .ToListAsync();
 
                 response.Data.Accounts = dbAccounts.Select(a => _mapper.Map<AccountDto>(a)).ToList();
+
+                Helper.SetAccountTotals(ref response);
             }
             catch (System.Exception ex)
             {
@@ -119,10 +121,12 @@ namespace financing_api.Services.AccountService
                 await _context.SaveChangesAsync();
 
                 var dbAccounts = await _context.Accounts
-                                .Where(a => a.UserId == user.Id)
-                                .ToListAsync();
+                .Where(a => a.UserId == user.Id)
+                .ToListAsync();
 
                 response.Data.Accounts = dbAccounts.Select(a => _mapper.Map<AccountDto>(a)).ToList();
+
+                Helper.SetAccountTotals(ref response);
 
             }
             catch (System.Exception ex)
@@ -136,5 +140,7 @@ namespace financing_api.Services.AccountService
 
             return response;
         }
+
+
     }
 }

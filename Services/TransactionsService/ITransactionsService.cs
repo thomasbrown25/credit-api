@@ -11,10 +11,9 @@ namespace financing_api.Services.TransactionsService
         Task<ServiceResponse<GetTransactionsDto>> GetTransactions();
         Task<ServiceResponse<GetTransactionsDto>> RefreshTransactions();
         Task<ServiceResponse<GetTransactionsDto>> GetAccountTransactions(string accountId);
-        Task<ServiceResponse<CurrentMonthDto>> GetCurrentSpendForMonth();
         Task<ServiceResponse<GetRecurringDto>> GetRecurringTransactions();
         Task<ServiceResponse<GetRecurringDto>> GetExpenses();
-        Task<ServiceResponse<List<RecurringDto>>> RefreshRecurringTransactions();
+        Task<ServiceResponse<GetRecurringDto>> RefreshRecurringTransactions();
         Task<ServiceResponse<List<RecurringDto>>> AddRecurringTransaction(AddRecurringDto newRecurring);
         Task<ServiceResponse<RecurringDto>> UpdateRecurringTransaction(UpdateRecurringDto updatedRecurring);
         Task<ServiceResponse<GetRecurringDto>> DeleteIncome(string incomeId);

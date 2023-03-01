@@ -22,6 +22,7 @@ using financing_api.Shared;
 using Microsoft.Extensions.Configuration.Yaml;
 using financing_api.Services.LiabilitiesService;
 using financing_api.ApiHelper;
+using financing_api.Services.RefreshService;
 
 var builder = WebApplication.CreateBuilder(args);
 var configBuilder = new ConfigurationBuilder();
@@ -71,6 +72,7 @@ builder.Logging.AddEventSourceLogger();
 services.AddDbContext<DataContext>(
     options => options.UseSqlServer(configuration["DbConnectionString"])
 );
+
 services.AddControllers();
 
 // Turn off claim mapping for Microsoft middleware
@@ -102,6 +104,7 @@ services.AddScoped<IWeaponService, WeaponService>();
 services.AddScoped<ITransactionsService, TransactionsService>();
 services.AddScoped<IAccountService, AccountService>();
 services.AddScoped<ILiabilitiesService, LiabilitiesService>();
+services.AddScoped<IRefreshService, RefreshService>();
 services.AddScoped<IAPI, API>();
 
 // Authentication
@@ -130,6 +133,7 @@ services.AddHttpContextAccessor();
 services.AddTransient<IPrincipal>(
     provider => provider.GetService<IHttpContextAccessor>().HttpContext.User
 );
+
 
 services.AddCors(options =>
 {

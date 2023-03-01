@@ -57,15 +57,17 @@ namespace financing_api.Utils
             return accountIds;
         }
 
-        // public static T IsEmpty<T>(T result)
+
+        // public static T IsValid<T>(ServiceResponse<T> serviceResponse)
         // {
-        //     if (result is null)
+        //     if (plaidResponse.Result.Error is not null)
         //     {
-        //         Console.WriteLine("Plaid API result is null");
-        //     }
-        //     else if (result.Error is not null)
-        //     {
-        //         Console.WriteLine(result.Error.ErrorMessage);
+        //         Console.WriteLine(plaidResponse.Result.Error.ErrorMessage);
+        //         response.Success = false;
+        //         response.Error = new Error();
+        //         response.Error.ErrorCode = plaidResponse.Result.Error.ErrorCode.ToString();
+        //         response.Error.ErrorMessage = plaidResponse.Result.Error.ErrorMessage;
+        //         return response;
         //     }
         // }
 
