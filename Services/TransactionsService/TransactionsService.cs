@@ -363,6 +363,7 @@ namespace financing_api.Services.TransactionsService
 
                 var dbTransactions = await _context.Transactions
                     .Where(r => r.UserId == user.Id)
+                    .OrderByDescending(r => r.Date)
                     .ToListAsync();
 
                 response.Data.Transactions = dbTransactions
@@ -400,6 +401,53 @@ namespace financing_api.Services.TransactionsService
                     .SingleOrDefaultAsync();
 
                 _context.Recurrings.Remove(dbIncome);
+
+                await _context.SaveChangesAsync();
+
+                var dbRecurrings = await _context.Recurrings
+                    .Where(r => r.UserId == user.Id)
+                    .ToListAsync();
+
+                response.Data.Incomes = dbRecurrings
+                    .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
+                    .Where(r => r.IsActive == true)
+                    .Select(r => _mapper.Map<RecurringDto>(r))
+                    .OrderBy(r => r.DueDate)
+                    .ToList();
+
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                response.Success = false;
+                response.Message = ex.Message;
+                return response;
+            }
+
+            return response;
+        }
+
+        public async Task<ServiceResponse<GetRecurringDto>> SetIncomeActive(string incomeId, UpdateRecurringDto recurringDto)
+        {
+            var response = new ServiceResponse<GetRecurringDto>();
+
+            try
+            {
+                response.Data = new GetRecurringDto();
+                response.Data.Incomes = new List<RecurringDto>();
+
+                // Get user for accessToken
+                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
+                var dbIncome = await _context.Recurrings
+                    .Where(r => r.UserId == user.Id)
+                    .Where(r => r.StreamId == incomeId)
+                    .SingleOrDefaultAsync();
+
+                if (dbIncome is not null)
+                {
+                    dbIncome.IsActive = recurringDto.IsActive;
+                }
 
                 await _context.SaveChangesAsync();
 

@@ -15,7 +15,7 @@ namespace financing_api.Dtos.Transaction
         public string? MerchantName { get; set; }
         public string? Frequency { get; set; }
         public decimal? LastAmount { get; set; }
-        public bool? IsActive { get; set; }
+        public bool IsActive { get; set; }
         public string? Status { get; set; }
     }
 }

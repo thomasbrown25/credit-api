@@ -61,7 +61,11 @@ namespace financing_api.Services.RefreshService
                     var dbAccount = await _context.Accounts
                        .FirstOrDefaultAsync(a => a.AccountId == account.AccountId);
 
-                    if (dbAccount is null)
+                    if (dbAccount is not null)
+                    {
+                        dbAccount = Helper.UpdateAccount(dbAccount, account, user);
+                    }
+                    else
                     {
                         var accountDto = Helper.MapPlaidStream(new AccountDto(), account, user);
 

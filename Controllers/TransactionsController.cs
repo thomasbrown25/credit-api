@@ -75,6 +75,19 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
+        [HttpPost("income/activate/{incomeId}")]
+        public async Task<ActionResult<ServiceResponse<GetRecurringDto>>> SetIncomeActive(string incomeId, UpdateRecurringDto recurringDto)
+        {
+            var response = await _transactionsService.SetIncomeActive(incomeId, recurringDto);
+
+            if (!response.Success)
+            { // need to set this to server error
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+
+        [Authorize]
         [HttpGet("expenses")]
         public async Task<ActionResult<ServiceResponse<GetRecurringDto>>> GetExpenses()
         {

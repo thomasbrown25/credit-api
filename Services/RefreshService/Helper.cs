@@ -20,13 +20,27 @@ namespace financing_api.Services.RefreshService
             accountDto.Name = account.Name;
             accountDto.Mask = account.Mask;
             accountDto.OfficialName = account.OfficialName;
-            accountDto.Type = account.Subtype?.ToString();
+            accountDto.Type = account.Type.ToString();
             accountDto.Subtype = account.Subtype?.ToString();
             accountDto.BalanceCurrent = account.Balances.Current;
             accountDto.BalanceAvailable = account.Balances.Available;
             accountDto.BalanceLimit = account.Balances.Limit;
 
             return accountDto;
+        }
+
+        public static financing_api.Models.Account UpdateAccount(financing_api.Models.Account dbAccount, Going.Plaid.Entity.Account account, User user)
+        {
+            dbAccount.Name = account.Name;
+            dbAccount.OfficialName = account.OfficialName;
+            dbAccount.Mask = account.Mask;
+            dbAccount.Type = account.Type.ToString();
+            dbAccount.SubType = account.Subtype?.ToString();
+            dbAccount.BalanceAvailable = account.Balances.Available;
+            dbAccount.BalanceCurrent = account.Balances.Current;
+            dbAccount.BalanceLimit = account.Balances.Limit;
+
+            return dbAccount;
         }
 
         public static RecurringDto MapPlaidStream(RecurringDto recurring, TransactionStream stream, User user, EType type)
