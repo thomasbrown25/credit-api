@@ -70,12 +70,14 @@ namespace financing_api.Data
             return response;
         }
 
-        public async Task<ServiceResponse<string>> Login(string email, string password)
+        public async Task<ServiceResponse<LoadUserDto>> Login(string email, string password)
         {
-            ServiceResponse<string> response = new ServiceResponse<string>();
+            var response = new ServiceResponse<LoadUserDto>();
 
             try
             {
+                response.Data = new LoadUserDto();
+
                 var user = await _context.Users.FirstOrDefaultAsync(
                     u => u.Email.ToLower().Equals(email.ToLower())
                 );
@@ -92,14 +94,14 @@ namespace financing_api.Data
                 }
                 else
                 {
-                    response.Data = CreateToken(user);
+                    response.Data.JWTToken = CreateToken(user);
                 }
             }
             catch (Exception ex)
             {
-                response.Data = ex.Message;
                 Console.WriteLine(ex.Message);
-                throw;
+                response.Success = false;
+                response.Message = ex.Message;
             }
             return response;
         }

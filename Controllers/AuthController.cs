@@ -51,7 +51,7 @@ namespace financing_api.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<ServiceResponse<string>>> Login(UserLoginDto request)
+        public async Task<ActionResult<ServiceResponse<LoadUserDto>>> Login(UserLoginDto request)
         {
             var response = await _authService.Login(request.Email, request.Password);
 

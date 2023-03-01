@@ -130,7 +130,7 @@ services
 // });
 
 services.AddHttpContextAccessor();
-services.AddTransient<IPrincipal>(
+services.AddSingleton<IPrincipal>(
     provider => provider.GetService<IHttpContextAccessor>().HttpContext.User
 );
 
