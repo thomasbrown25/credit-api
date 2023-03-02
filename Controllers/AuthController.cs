@@ -95,5 +95,18 @@ namespace financing_api.Controllers
                 .Result;
             return Ok(new { AuthToken = _jwtGenerator.CreateUserAuthToken(payload.Email) });
         }
+
+        [Authorize]
+        [HttpDelete("user")]
+        public async Task<ActionResult<ServiceResponse<string>>> DeleteUser()
+        {
+            var response = await _authService.DeleteUser();
+
+            if (!response.Success)
+            {
+                return Unauthorized(response);
+            }
+            return Ok(response);
+        }
     }
 }

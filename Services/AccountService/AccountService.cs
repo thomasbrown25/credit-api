@@ -79,6 +79,7 @@ namespace financing_api.Services.AccountService
                                 .Where(a => a.AccountId == accountId)
                                 .SingleOrDefaultAsync();
 
+
                 response.Data.Account = _mapper.Map<AccountDto>(dbAccount);
             }
             catch (System.Exception ex)

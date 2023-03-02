@@ -132,6 +132,46 @@ namespace financing_api.Data
             return response;
         }
 
+        public async Task<ServiceResponse<string>> DeleteUser()
+        {
+            ServiceResponse<string> response = new ServiceResponse<string>();
+
+            try
+            {
+                User user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
+
+                var dbTransactions = await _context.Transactions
+                                   .Where(c => c.UserId == user.Id)
+                                   .OrderByDescending(c => c.Date)
+                                   .ToListAsync();
+
+                var dbRecurrings = await _context.Recurrings
+                                .Where(r => r.UserId == user.Id)
+                                .ToListAsync();
+
+                var dbAccounts = await _context.Accounts
+                                .Where(a => a.UserId == user.Id)
+                                .ToListAsync();
+
+                _context.RemoveRange(dbTransactions);
+                _context.RemoveRange(dbRecurrings);
+                _context.RemoveRange(dbAccounts);
+                _context.Remove(user);
+
+                _context.SaveChangesAsync();
+
+                response.Data = "User Deleted: " + user.FirstName;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                response.Success = false;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
         public async Task<bool> UserExists(string email)
         {
             try

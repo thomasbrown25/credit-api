@@ -371,6 +371,22 @@ namespace financing_api.Services.TransactionsService
                                             .Select(t => _mapper.Map<TransactionDto>(t))
                                             .ToList();
 
+                var todayTransactions = dbTransactions
+                                            .Where(t => t.AccountId == accountId)
+                                            .Where(t => t.Date == DateTime.Today)
+                                            .Select(t => _mapper.Map<TransactionDto>(t))
+                                            .ToList();
+
+                decimal totalAmount = 0;
+                foreach (var transaction in todayTransactions)
+                {
+                    if (transaction.Amount > 0)
+                    {
+                        totalAmount = totalAmount + transaction.Amount;
+                    }
+                }
+                response.Data.TodaySpendAmount = totalAmount;
+
             }
             catch (System.Exception ex)
             {
