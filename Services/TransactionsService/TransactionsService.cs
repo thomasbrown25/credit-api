@@ -160,6 +160,10 @@ namespace financing_api.Services.TransactionsService
                                             .OrderBy(r => r.DueDate)
                                             .ToList();
 
+                response.Data.TotalIncome = Helper.GetTotalIncome(response.Data.Incomes);
+
+                response.Data.Tithes = Helper.GetTithes(response.Data.Incomes);
+
             }
             catch (System.Exception ex)
             {

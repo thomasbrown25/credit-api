@@ -56,6 +56,11 @@ namespace financing_api.Services.RefreshService
 
                 var accountResponse = _api.GetAccountsRequest(user);
 
+                if (Helper.IsValid(accountResponse))
+                {
+
+                }
+
                 foreach (var account in accountResponse.Result.Accounts)
                 {
                     var dbAccount = await _context.Accounts

@@ -105,5 +105,32 @@ namespace financing_api.Services.TransactionsService
                 }
             }
         }
+
+        public static decimal GetTithes(List<RecurringDto> incomes)
+        {
+            decimal tithes = 0;
+            decimal totalIncome = 0;
+
+            foreach (var income in incomes)
+            {
+                totalIncome = totalIncome + income.LastAmount;
+            }
+
+            tithes = totalIncome / 10;
+
+            return tithes;
+        }
+
+        public static decimal GetTotalIncome(List<RecurringDto> incomes)
+        {
+            decimal totalIncome = 0;
+
+            foreach (var income in incomes)
+            {
+                totalIncome = totalIncome + income.LastAmount;
+            }
+
+            return totalIncome;
+        }
     }
 }

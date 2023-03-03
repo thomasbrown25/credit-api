@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using financing_api.Data;
 using financing_api.Dtos.Account;
+using financing_api.Dtos.Refresh;
 using financing_api.Dtos.Transaction;
 using Going.Plaid.Entity;
 using Microsoft.EntityFrameworkCore;
@@ -43,7 +44,8 @@ namespace financing_api.Services.RefreshService
             return dbAccount;
         }
 
-        public static RecurringDto MapPlaidStream(RecurringDto recurring, TransactionStream stream, User user, EType type)
+        public static RecurringDto
+        MapPlaidStream(RecurringDto recurring, TransactionStream stream, User user, EType type)
         {
             try
             {
@@ -135,6 +137,16 @@ namespace financing_api.Services.RefreshService
                     }
                 }
             }
+        }
+
+        public static bool IsValid(Task<Going.Plaid.Accounts.AccountsGetResponse> response)
+        {
+            if (response is not null && response.Result.Error is not null)
+            {
+                Console.WriteLine("Plaid Error: " + response.Result.Error.ErrorMessage);
+                return false;
+            }
+            return true;
         }
     }
 }
