@@ -156,6 +156,7 @@ namespace financing_api.Services.TransactionsService
                 response.Data.Expenses = dbRecurrings
                                             .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
                                             .Where(r => r.IsActive == true)
+                                            .Where(r => r.DueDate > DateTime.Today.AddDays(-3))
                                             .Select(r => _mapper.Map<RecurringDto>(r))
                                             .OrderBy(r => r.DueDate)
                                             .ToList();

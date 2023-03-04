@@ -60,5 +60,18 @@ namespace financing_api.Controllers
             }
             return Ok(response);
         }
+
+        [Authorize]
+        [HttpDelete("{accountId}")]
+        public async Task<ActionResult<ServiceResponse<GetAccountsDto>>> DeleteIncome(string accountId)
+        {
+            var response = await _accountService.DeleteAccount(accountId);
+
+            if (!response.Success)
+            { // need to set this to server error
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
     }
 }

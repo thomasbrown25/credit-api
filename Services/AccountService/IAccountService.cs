@@ -11,5 +11,6 @@ namespace financing_api.Services.AccountService
         Task<ServiceResponse<GetAccountsDto>> GetAccountsBalance();
         Task<ServiceResponse<GetAccountsDto>> GetAccountBalance(string accountId);
         Task<ServiceResponse<GetAccountsDto>> RefreshAccountsBalance();
+        Task<ServiceResponse<GetAccountsDto>> DeleteAccount(string accountId);
     }
 }

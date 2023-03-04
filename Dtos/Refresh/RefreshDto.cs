@@ -10,6 +10,6 @@ namespace financing_api.Dtos.Refresh
     public class RefreshDto
     {
         public Task<ServiceResponse<string>> Message { get; set; }
-        public Going.Plaid.Errors.PlaidError PlaidError { get; set; }
+
     }
 }

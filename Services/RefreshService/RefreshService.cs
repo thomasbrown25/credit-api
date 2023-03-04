@@ -56,9 +56,11 @@ namespace financing_api.Services.RefreshService
 
                 var accountResponse = _api.GetAccountsRequest(user);
 
-                if (Helper.IsValid(accountResponse))
+                if (!Helper.IsValid(accountResponse))
                 {
-
+                    response.Success = false;
+                    response.PlaidError = accountResponse.Result.Error;
+                    return response;
                 }
 
                 foreach (var account in accountResponse.Result.Accounts)

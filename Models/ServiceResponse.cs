@@ -12,6 +12,7 @@ namespace financing_api.Models
         public string Message { get; set; } = string.Empty;
         public string InnerException { get; set; }
         public Error Error { get; set; }
+        public Going.Plaid.Errors.PlaidError PlaidError { get; set; }
     }
 
 }

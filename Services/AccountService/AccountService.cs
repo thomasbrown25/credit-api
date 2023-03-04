@@ -142,6 +142,45 @@ namespace financing_api.Services.AccountService
             return response;
         }
 
+        public async Task<ServiceResponse<GetAccountsDto>> DeleteAccount(string accountId)
+        {
+            var response = new ServiceResponse<GetAccountsDto>();
+
+            try
+            {
+                response.Data = new GetAccountsDto();
+                response.Data.Accounts = new List<AccountDto>();
+
+                // Get user for accessToken
+                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
+                var dbAccount = await _context.Accounts
+                                .Where(a => a.UserId == user.Id)
+                                .Where(a => a.AccountId == accountId)
+                                .SingleOrDefaultAsync();
+
+                _context.Accounts.Remove(dbAccount);
+
+                await _context.SaveChangesAsync();
+
+                var dbAccounts = await _context.Accounts
+                    .Where(r => r.UserId == user.Id)
+                    .ToListAsync();
+
+                response.Data.Accounts = dbAccounts.Select(a => _mapper.Map<AccountDto>(a)).ToList();
+
+                Helper.SetAccountTotals(ref response);
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                response.Success = false;
+                response.Message = ex.Message;
+                return response;
+            }
+
+            return response;
+        }
 
     }
 }
