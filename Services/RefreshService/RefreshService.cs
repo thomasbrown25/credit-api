@@ -66,7 +66,7 @@ namespace financing_api.Services.RefreshService
                 foreach (var account in accountResponse.Result.Accounts)
                 {
                     var dbAccount = await _context.Accounts
-                       .FirstOrDefaultAsync(a => a.AccountId == account.AccountId);
+                       .FirstOrDefaultAsync(a => a.AccountId == account.AccountId || a.UserId == user.Id && a.Name == account.Name && a.OfficialName == account.OfficialName && a.Mask == account.Mask);
 
                     if (dbAccount is not null)
                     {
@@ -89,7 +89,7 @@ namespace financing_api.Services.RefreshService
                 foreach (var transaction in result.Transactions)
                 {
                     var dbTransaction = await _context.Transactions
-                        .FirstOrDefaultAsync(t => t.TransactionId == transaction.TransactionId);
+                        .FirstOrDefaultAsync(t => t.TransactionId == transaction.TransactionId || t.UserId == user.Id && t.AccountId == transaction.AccountId && t.Name == transaction.Name && t.MerchantName == transaction.MerchantName && t.Amount == transaction.Amount.ToString());
 
                     if (dbTransaction is null)
                     {

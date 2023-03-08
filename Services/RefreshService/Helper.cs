@@ -32,6 +32,8 @@ namespace financing_api.Services.RefreshService
 
         public static financing_api.Models.Account UpdateAccount(financing_api.Models.Account dbAccount, Going.Plaid.Entity.Account account, User user)
         {
+            dbAccount.AccountId = account.AccountId;
+            dbAccount.UserId = user.Id;
             dbAccount.Name = account.Name;
             dbAccount.OfficialName = account.OfficialName;
             dbAccount.Mask = account.Mask;
@@ -125,7 +127,7 @@ namespace financing_api.Services.RefreshService
                 if (!stream.Category.Contains("Internal Account Transfer") && (!stream.Category.Contains("Interest")))
                 {
                     var dbRecurring = context.Recurrings
-                        .FirstOrDefault(r => r.StreamId == stream.StreamId);
+                        .FirstOrDefault(r => r.StreamId == stream.StreamId || r.Description == stream.Description && r.MerchantName == stream.MerchantName && r.FirstDate == stream.FirstDate.ToDateTime(TimeOnly.Parse("00:00:00")) && r.LastAmount == stream.LastAmount.Amount * -1);
 
                     if (dbRecurring is null)
                     {
