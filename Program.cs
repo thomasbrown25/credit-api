@@ -23,6 +23,7 @@ using Microsoft.Extensions.Configuration.Yaml;
 using financing_api.Services.LiabilitiesService;
 using financing_api.ApiHelper;
 using financing_api.Services.RefreshService;
+using financing_api.Services.CategoryService;
 
 var builder = WebApplication.CreateBuilder(args);
 var configBuilder = new ConfigurationBuilder();
@@ -103,6 +104,7 @@ services.AddScoped<ICharacterService, CharacterService>();
 services.AddScoped<IWeaponService, WeaponService>();
 services.AddScoped<ITransactionsService, TransactionsService>();
 services.AddScoped<IAccountService, AccountService>();
+services.AddScoped<ICategoryService, CategoryService>();
 services.AddScoped<ILiabilitiesService, LiabilitiesService>();
 services.AddScoped<IRefreshService, RefreshService>();
 services.AddScoped<IAPI, API>();

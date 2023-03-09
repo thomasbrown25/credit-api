@@ -13,6 +13,7 @@ using financing_api.Dtos.Refresh;
 using financing_api.Dtos.Account;
 using financing_api.Utils;
 using financing_api.Dtos.Transaction;
+using financing_api.Dtos.Category;
 
 namespace financing_api.Services.RefreshService
 {
@@ -93,10 +94,22 @@ namespace financing_api.Services.RefreshService
 
                     if (dbTransaction is null)
                     {
+                        var category = transaction.Category?.Count > 1 ? transaction.Category[1] : transaction.Category[0];
+                        var categoryDto = new CategoryDto();
                         var transactionDto = Helper.MapPlaidStream(new TransactionDto(), transaction, user);
 
                         Transaction transactionDb = _mapper.Map<Transaction>(transactionDto);
                         _context.Transactions.Add(transactionDb);
+
+                        var dbCategory = await _context.Categories
+                                            .FirstOrDefaultAsync(c => c.Name.ToLower() == category);
+
+                        if (dbCategory is null)
+                        {
+                            categoryDto.Name = category;
+                            Category categoryDb = _mapper.Map<Category>(categoryDto);
+                            _context.Categories.Add(categoryDb);
+                        }
                     }
                 }
 

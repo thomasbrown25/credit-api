@@ -19,6 +19,6 @@ namespace financing_api.Models
         public decimal? BalanceCurrent { get; set; }
         public decimal? BalanceLimit { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
-        public DateTime UpdateDate { get; set; } = DateTime.Now;
+        public DateTime UpdatedDate { get; set; } = DateTime.Now;
     }
 }

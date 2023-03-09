@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace financing_api.Models
+namespace financing_api.Dtos.Category
 {
-    public class Category
+    public class CategoryDto
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime? UpdatedDate { get; set; }
     }
 }

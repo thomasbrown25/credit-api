@@ -9,6 +9,7 @@ using financing_api.Dtos.Skill;
 using financing_api.Dtos.Weapon;
 using financing_api.Dtos.Transaction;
 using financing_api.Dtos.Account;
+using financing_api.Dtos.Category;
 
 namespace financing_api
 {
@@ -31,6 +32,8 @@ namespace financing_api
             CreateMap<Transaction, TransactionDto>();
             CreateMap<AccountDto, Account>();
             CreateMap<Account, AccountDto>();
+            CreateMap<CategoryDto, Category>();
+            CreateMap<Category, CategoryDto>();
         }
     }
 }

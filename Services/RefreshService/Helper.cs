@@ -42,6 +42,7 @@ namespace financing_api.Services.RefreshService
             dbAccount.BalanceAvailable = account.Balances.Available;
             dbAccount.BalanceCurrent = account.Balances.Current;
             dbAccount.BalanceLimit = account.Balances.Limit;
+            dbAccount.UpdatedDate = DateTime.Now;
 
             return dbAccount;
         }
