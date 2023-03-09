@@ -20,7 +20,6 @@ namespace financing_api.Controllers
             _refreshService = refreshervice;
         }
 
-        [Authorize]
         [HttpPost("all")]
         public async Task<ActionResult<ServiceResponse<RefreshDto>>> RefreshAll()
         {
