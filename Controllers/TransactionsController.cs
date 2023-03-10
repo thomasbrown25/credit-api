@@ -127,8 +127,8 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
-        [HttpPost("recurring/update")]
-        public async Task<ActionResult<ServiceResponse<RecurringDto>>> UpdateRecurringTransaction(UpdateRecurringDto updatedRecurring)
+        [HttpPost("recurring/{transactionId}")]
+        public async Task<ActionResult<ServiceResponse<GetRecurringDto>>> UpdateRecurringTransaction(UpdateRecurringDto updatedRecurring)
         {
             var response = await _transactionsService.UpdateRecurringTransaction(updatedRecurring);
 

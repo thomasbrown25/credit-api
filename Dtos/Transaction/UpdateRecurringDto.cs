@@ -17,5 +17,6 @@ namespace financing_api.Dtos.Transaction
         public decimal? LastAmount { get; set; }
         public bool IsActive { get; set; }
         public string? Status { get; set; }
+        public DateTime DueDate { get; set; }
     }
 }

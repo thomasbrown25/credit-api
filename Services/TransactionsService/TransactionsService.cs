@@ -144,7 +144,10 @@ namespace financing_api.Services.TransactionsService
                     .Where(r => r.UserId == user.Id)
                     .ToListAsync();
 
-                response.Data.Transactions = dbRecurrings.Select(r => _mapper.Map<RecurringDto>(r)).OrderByDescending(r => r.DueDate).ToList();
+                response.Data.Transactions = dbRecurrings
+                                                .Where(r => r.IsActive == true)
+                                                .Select(r => _mapper.Map<RecurringDto>(r))
+                                                .OrderByDescending(r => r.DueDate).ToList();
 
                 response.Data.Incomes = dbRecurrings
                                             .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
@@ -156,7 +159,6 @@ namespace financing_api.Services.TransactionsService
                 response.Data.Expenses = dbRecurrings
                                             .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
                                             .Where(r => r.IsActive == true)
-                                            .Where(r => r.DueDate > DateTime.Today.AddDays(-3))
                                             .Select(r => _mapper.Map<RecurringDto>(r))
                                             .OrderBy(r => r.DueDate)
                                             .ToList();
@@ -323,23 +325,36 @@ namespace financing_api.Services.TransactionsService
             return response;
         }
 
-        public async Task<ServiceResponse<RecurringDto>> UpdateRecurringTransaction(UpdateRecurringDto updatedRecurring)
+        public async Task<ServiceResponse<GetRecurringDto>> UpdateRecurringTransaction(UpdateRecurringDto updatedRecurring)
         {
-            var response = new ServiceResponse<RecurringDto>();
+            var response = new ServiceResponse<GetRecurringDto>();
+            response.Data = new GetRecurringDto();
 
             try
             {
+                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
                 Recurring recurring = await _context.Recurrings
                     .FirstOrDefaultAsync(c => c.Id == updatedRecurring.Id);
 
                 // confirm that current user is owner
-                if (recurring.UserId == Utilities.GetUserId(_httpContextAccessor))
+                if (recurring.UserId == user.Id)
                 {
                     _mapper.Map<UpdateRecurringDto, Recurring>(updatedRecurring, recurring);
 
+                    var dbRecurrings = await _context.Recurrings
+                                        .Where(r => r.UserId == user.Id)
+                                        .ToListAsync();
 
                     await _context.SaveChangesAsync();
-                    response.Data = _mapper.Map<RecurringDto>(recurring);
+
+                    response.Data.Expenses = dbRecurrings
+                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
+                                            .Where(r => r.IsActive == true)
+                                            .Where(r => r.DueDate > DateTime.Today.AddDays(-3))
+                                            .Select(r => _mapper.Map<RecurringDto>(r))
+                                            .OrderBy(r => r.DueDate)
+                                            .ToList();
                 }
 
             }
