@@ -84,7 +84,7 @@ namespace financing_api.Services.CategoryService
 
                 foreach (var transaction in result.Transactions)
                 {
-                    var category = transaction.Category?.Count > 1 ? transaction.Category[1] : transaction.Category[0];
+                    var category = transaction.Category?[0];
                     var dbCategory = await _context.Categories
                                         .FirstOrDefaultAsync(c => c.Name.ToLower() == category);
 

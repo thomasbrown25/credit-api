@@ -87,6 +87,8 @@ namespace financing_api.Services.RefreshService
                 // ********* TRANSACTIONS ************ //
                 var result = await _api.GetTransactionsRequest(user);
 
+                var categoryList = new List<string>();
+
                 foreach (var transaction in result.Transactions)
                 {
                     var dbTransaction = await _context.Transactions
@@ -94,28 +96,30 @@ namespace financing_api.Services.RefreshService
 
                     if (dbTransaction is null)
                     {
-                        var category = transaction.Category?.Count > 1 ? transaction.Category[1] : transaction.Category[0];
-                        var categoryDto = new CategoryDto();
                         var transactionDto = Helper.MapPlaidStream(new TransactionDto(), transaction, user);
 
                         Transaction transactionDb = _mapper.Map<Transaction>(transactionDto);
                         _context.Transactions.Add(transactionDb);
+                    }
 
-                        var dbCategory = await _context.Categories
-                                            .FirstOrDefaultAsync(c => c.Name.ToLower() == category);
+                    // ********* CATEGORIES ************ //
+                    var category = transaction.Category?[0];
+                    var categoryDto = new CategoryDto();
+                    var dbCategory = await _context.Categories
+                                        .FirstOrDefaultAsync(c => c.Name.ToLower() == category);
 
-                        if (dbCategory is null)
-                        {
-                            categoryDto.Name = category;
-                            Category categoryDb = _mapper.Map<Category>(categoryDto);
-                            _context.Categories.Add(categoryDb);
-                        }
+                    if (dbCategory is null && !categoryList.Contains(category))
+                    {
+                        categoryDto.Name = category;
+                        Category categoryDb = _mapper.Map<Category>(categoryDto);
+                        _context.Categories.Add(categoryDb);
+                        categoryList.Add(category);
                     }
                 }
 
                 await _context.SaveChangesAsync();
 
-                // Get Account IDs 
+                // Get Recurring Transactions
                 var getAccountRequest = new Going.Plaid.Accounts.AccountsGetRequest()
                 {
                     ClientId = _configuration["PlaidClientId"],

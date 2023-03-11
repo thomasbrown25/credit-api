@@ -56,7 +56,7 @@ namespace financing_api.Services.RefreshService
                 recurring.StreamId = stream.StreamId;
                 recurring.AccountId = stream.AccountId;
                 recurring.Type = Enum.GetName<EType>(type);
-                recurring.Category = stream.Category.Count > 1 ? stream.Category[1] : stream.Category[0];
+                recurring.Category = stream.Category?[0];
                 recurring.Description = stream.Description;
                 recurring.MerchantName = stream.MerchantName;
                 recurring.FirstDate = stream.FirstDate.ToDateTime(TimeOnly.Parse("00:00:00"));
@@ -110,7 +110,7 @@ namespace financing_api.Services.RefreshService
                 transactionDto.Amount = transaction.Amount;
                 transactionDto.Pending = transaction.Pending;
                 transactionDto.Date = transaction.Date.ToString();
-                transactionDto.Category = transaction.Category.Count > 1 ? transaction.Category[1] : transaction.Category[0];
+                transactionDto.Category = transaction.Category?[0];
 
                 return transactionDto;
             }
