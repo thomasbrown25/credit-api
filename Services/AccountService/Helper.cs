@@ -28,8 +28,10 @@ namespace financing_api.Services.AccountService
         {
             decimal? cashAmount = 0;
             decimal? creditAmount = 0;
+            decimal? loanAmount = 0;
             response.Data.CreditAccounts = new List<AccountDto>();
             response.Data.CashAccounts = new List<AccountDto>();
+            response.Data.LoanAccounts = new List<AccountDto>();
 
             foreach (var account in response.Data.Accounts)
             {
@@ -37,6 +39,11 @@ namespace financing_api.Services.AccountService
                 {
                     creditAmount = creditAmount + account.BalanceCurrent;
                     response.Data.CreditAccounts.Add(account);
+                }
+                else if (account.Type.ToLower().Contains("loan"))
+                {
+                    loanAmount = loanAmount + account.BalanceCurrent;
+                    response.Data.LoanAccounts.Add(account);
                 }
                 else
                 {
@@ -46,6 +53,7 @@ namespace financing_api.Services.AccountService
             }
             response.Data.CashAmount = cashAmount;
             response.Data.CreditAmount = creditAmount;
+            response.Data.LoanAmount = loanAmount;
         }
     }
 }

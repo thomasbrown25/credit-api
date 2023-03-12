@@ -12,9 +12,9 @@ namespace financing_api.Models
         public int UserId { get; set; }
         public string Name { get; set; }
         public string OfficialName { get; set; }
-        public string Mask { get; set; }
-        public string Type { get; set; }
-        public string SubType { get; set; }
+        public string? Mask { get; set; }
+        public string? Type { get; set; }
+        public string? SubType { get; set; }
         public decimal? BalanceAvailable { get; set; }
         public decimal? BalanceCurrent { get; set; }
         public decimal? BalanceLimit { get; set; }
