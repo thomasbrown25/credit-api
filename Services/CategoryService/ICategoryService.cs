@@ -9,6 +9,7 @@ namespace financing_api.Services.CategoryService
     public interface ICategoryService
     {
         Task<ServiceResponse<GetCategoryDto>> GetCategories();
+        Task<ServiceResponse<GetCategoryDto>> AddCategory(AddCategoryDto category);
         Task<ServiceResponse<GetCategoryDto>> RefreshCategories();
     }
 }

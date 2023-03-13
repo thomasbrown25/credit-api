@@ -69,6 +69,38 @@ namespace financing_api.Services.CategoryService
             return response;
         }
 
+        public async Task<ServiceResponse<GetCategoryDto>> AddCategory(AddCategoryDto category)
+        {
+            var response = new ServiceResponse<GetCategoryDto>();
+
+            try
+            {
+                response.Data = new GetCategoryDto();
+
+                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
+                Category newCategory = _mapper.Map<Category>(category);
+
+                _context.Categories.Add(newCategory);
+
+                await _context.SaveChangesAsync();
+
+                var dbCategories = await _context.Categories
+                                   .OrderBy(c => c.Name)
+                                   .ToListAsync();
+
+                response.Data.Categories = dbCategories.Select(c => _mapper.Map<CategoryDto>(c)).ToList();
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("Get Transactions failed: " + ex.Message);
+                response.Success = false;
+                response.Message = ex.Message;
+                return response;
+            }
+            return response;
+        }
+
         public async Task<ServiceResponse<GetCategoryDto>> RefreshCategories()
         {
             var response = new ServiceResponse<GetCategoryDto>();

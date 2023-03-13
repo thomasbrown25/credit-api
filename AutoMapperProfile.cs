@@ -34,6 +34,8 @@ namespace financing_api
             CreateMap<Account, AccountDto>();
             CreateMap<CategoryDto, Category>();
             CreateMap<Category, CategoryDto>();
+            CreateMap<AddCategoryDto, Category>();
+            CreateMap<Category, AddCategoryDto>();
         }
     }
 }

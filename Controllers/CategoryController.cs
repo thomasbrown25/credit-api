@@ -34,6 +34,19 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
+        [HttpPost("")]
+        public async Task<ActionResult<ServiceResponse<GetCategoryDto>>> AddCategory(AddCategoryDto category)
+        {
+            var response = await _categoryService.AddCategory(category);
+
+            if (!response.Success)
+            { // need to set this to server error
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+
+        [Authorize]
         [HttpPost("refresh")]
         public async Task<ActionResult<ServiceResponse<GetCategoryDto>>> RefreshCategories()
         {

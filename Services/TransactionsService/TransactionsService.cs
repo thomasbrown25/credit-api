@@ -342,11 +342,55 @@ namespace financing_api.Services.TransactionsService
                 {
                     _mapper.Map<UpdateRecurringDto, Recurring>(updatedRecurring, recurring);
 
+                    await _context.SaveChangesAsync();
+
                     var dbRecurrings = await _context.Recurrings
                                         .Where(r => r.UserId == user.Id)
                                         .ToListAsync();
 
+                    response.Data.Expenses = dbRecurrings
+                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
+                                            .Where(r => r.IsActive == true)
+                                            .Select(r => _mapper.Map<RecurringDto>(r))
+                                            .OrderBy(r => r.DueDate)
+                                            .ToList();
+                }
+
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                response.Success = false;
+                response.Message = ex.Message;
+                return response;
+            }
+
+            return response;
+        }
+
+        public async Task<ServiceResponse<GetRecurringDto>> DisableRecurringTransaction(int transactionId)
+        {
+            var response = new ServiceResponse<GetRecurringDto>();
+            response.Data = new GetRecurringDto();
+
+            try
+            {
+                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
+                Recurring dbRecurring = await _context.Recurrings
+                    .FirstOrDefaultAsync(r => r.Id == transactionId);
+
+                // confirm that current user is owner
+                if (dbRecurring.UserId == user.Id)
+                {
+                    dbRecurring.IsActive = false;
+                    dbRecurring.UpdatedDate = DateTime.Now;
+
                     await _context.SaveChangesAsync();
+
+                    var dbRecurrings = await _context.Recurrings
+                                        .Where(r => r.UserId == user.Id)
+                                        .ToListAsync();
 
                     response.Data.Expenses = dbRecurrings
                                             .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
