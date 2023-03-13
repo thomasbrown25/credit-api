@@ -62,6 +62,29 @@ namespace financing_api.ApiHelper
             return result;
         }
 
+        public async Task<Going.Plaid.Link.LinkTokenCreateResponse> UpdateLinkTokenRequest(User user)
+        {
+            var plaidUser = new LinkTokenCreateRequestUser()
+            {
+                ClientUserId = user.Id.ToString()
+            };
+
+            var request = new Going.Plaid.Link.LinkTokenCreateRequest()
+            {
+                ClientId = _configuration["PlaidClientId"],
+                Secret = _configuration["PlaidSecret"],
+                AccessToken = user.AccessToken,
+                ClientName = "Financing Api",
+                Language = Language.English,
+                CountryCodes = new CountryCode[] { CountryCode.Us },
+                User = plaidUser,
+            };
+
+            var result = await _client.LinkTokenCreateAsync(request);
+
+            return result;
+        }
+
         public async Task<Going.Plaid.Item.ItemPublicTokenExchangeResponse> PublicTokenExchangeRequest(string publicToken)
         {
             var result = await _client.ItemPublicTokenExchangeAsync(

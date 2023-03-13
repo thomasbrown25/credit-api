@@ -75,53 +75,32 @@ namespace financing_api.Services.PlaidService
         {
             ServiceResponse<string> response = new ServiceResponse<string>();
 
-            // try
-            // {
-            //     // Get current user from sql db
-            //     User user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+            try
+            {
+                // Get current user from sql db
+                User user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-            //     if (user == null)
-            //     {
-            //         response.Success = false;
-            //         response.Message = "User not found.";
-            //         return response;
-            //     }
+                var linkResponse = _api.UpdateLinkTokenRequest(user);
 
-            //     // Create plaid user with user id
-            //     var plaidUser = new LinkTokenCreateRequestUser()
-            //     {
-            //         ClientUserId = user.Id.ToString()
-            //     };
+                if (linkResponse.Result.Error is not null)
+                {
+                    Console.WriteLine(linkResponse.Result.Error.ErrorMessage);
+                    response.Success = false;
+                    response.Error = new Error();
+                    response.Error.ErrorCode = linkResponse.Result.Error.ErrorCode.ToString();
+                    response.Error.ErrorMessage = linkResponse.Result.Error.ErrorMessage;
+                    return response;
+                }
 
-            //     var result = await _client.CreateLinkToken(
-            //         new Acklann.Plaid.Management.CreateLinkTokenRequest()
-            //         {
-            //             ClientId = _configuration["PlaidClientId"],
-            //             Secret = _configuration["PlaidSecret"],
-            //             AccessToken = user.AccessToken,
-            //             ClientName = "Financing Api",
-            //             Language = "en",
-            //             CountryCodes = new string[] { "US" },
-            //             User = plaidUser,
-            //             Products = new string[] { "auth", "transactions" }
-            //         }
-            //     );
+                response.Data = linkResponse.Result.LinkToken;
 
-            //     if (result.Exception is not null)
-            //     {
-            //         response.Success = false;
-            //         response.Message = result.Exception.ErrorMessage;
-            //     }
-
-            //     response.Data = result.LinkToken;
-
-            //     return response;
-            // }
-            // catch (Exception ex)
-            // {
-            //     response.Success = false;
-            //     response.Message = ex.Message;
-            // }
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = ex.Message;
+            }
             return response;
         }
 
@@ -142,119 +121,5 @@ namespace financing_api.Services.PlaidService
 
             return response;
         }
-
-        // Get Recurring Transactions
-        // public async Task<ServiceResponse<GetRecurringDto>> GetRecurringTransactions()
-        // {
-        //     var response = new ServiceResponse<GetRecurringDto>();
-        //     try
-        //     {
-        //         response.Data = new GetRecurringDto();
-        //         response.Data.InflowStream = new List<InflowStreamsDto>();
-        //         response.Data.OutflowStream = new List<OutflowStreamsDto>();
-
-        //         // Get user for accessToken6
-        //         var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
-
-        //         if (user == null || user.AccessToken == null)
-        //         {
-        //             response.Success = false;
-        //             response.Message = "User does not have access token";
-        //             return response;
-        //         }
-
-        //         // Get Account IDs 
-        //         var getAccountRequest = new Going.Plaid.Accounts.AccountsGetRequest()
-        //         {
-        //             ClientId = _configuration["PlaidClientId"],
-        //             Secret = _configuration["PlaidSecret"],
-        //             AccessToken = user.AccessToken
-        //         };
-
-        //         var accountResponse = await _client.AccountsGetAsync(getAccountRequest);
-
-        //         if (accountResponse.Error is not null)
-        //         {
-        //             Console.WriteLine(accountResponse.Error.ErrorMessage);
-        //             response.Success = false;
-        //             response.Message = accountResponse.Error.ErrorMessage;
-        //             return response;
-        //         }
-
-
-        //         var getRecurringRequest = new Going.Plaid.Transactions.TransactionsRecurringGetRequest()
-        //         {
-        //             ClientId = _configuration["PlaidClientId"],
-        //             Secret = _configuration["PlaidSecret"],
-        //             AccessToken = user.AccessToken,
-        //             AccountIds = Utilities.GetAccountIds(accountResponse.Accounts),
-
-        //         };
-
-
-
-        //         var RecurringResponse = await _client.TransactionsRecurringGetAsync(getRecurringRequest);
-
-        //         if (RecurringResponse.Error is not null)
-        //         {
-        //             Console.WriteLine(RecurringResponse.Error.ErrorMessage);
-        //             response.Success = false;
-        //             response.Message = RecurringResponse.Error.ErrorMessage;
-        //             return response;
-        //         }
-
-        //         foreach (var inflowStream in RecurringResponse.InflowStreams)
-        //         {
-        //             var inflowStreamsDto = new InflowStreamsDto();
-
-        //             inflowStreamsDto.AccountId = inflowStream.AccountId;
-        //             inflowStreamsDto.AverageAmount = inflowStream.AverageAmount;
-        //             inflowStreamsDto.Categories = inflowStream.Category;
-        //             inflowStreamsDto.Description = inflowStream.Description;
-        //             inflowStreamsDto.FirstDate = inflowStream.FirstDate.ToDateTime(TimeOnly.Parse("00:00:00"));
-        //             inflowStreamsDto.Frequency = inflowStream.Frequency.ToString();
-        //             inflowStreamsDto.IsActive = inflowStream.IsActive;
-        //             inflowStreamsDto.LastAmount = inflowStream.LastAmount;
-        //             inflowStreamsDto.LastDate = inflowStream.LastDate.ToDateTime(TimeOnly.Parse("00:00:00"));
-        //             inflowStreamsDto.MerchantName = inflowStream.MerchantName;
-        //             inflowStreamsDto.Status = inflowStream.Status;
-        //             inflowStreamsDto.StreamId = inflowStream.StreamId;
-
-        //             response.Data.InflowStream.Add(inflowStreamsDto);
-        //         }
-
-
-        //         for (var i = 0; i < 10; i++)
-        //         {
-        //             var outflowStream = RecurringResponse.OutflowStreams;
-        //             var outflowStreamsDto = new OutflowStreamsDto();
-
-        //             outflowStreamsDto.AccountId = RecurringResponse.OutflowStreams[i].AccountId;
-        //             outflowStreamsDto.AverageAmount = RecurringResponse.OutflowStreams[i].AverageAmount;
-        //             outflowStreamsDto.Categories = RecurringResponse.OutflowStreams[i].Category;
-        //             outflowStreamsDto.Description = RecurringResponse.OutflowStreams[i].Description;
-        //             outflowStreamsDto.FirstDate = RecurringResponse.OutflowStreams[i].FirstDate.ToDateTime(TimeOnly.Parse("00:00:00"));
-        //             outflowStreamsDto.Frequency = RecurringResponse.OutflowStreams[i].Frequency.ToString();
-        //             outflowStreamsDto.IsActive = RecurringResponse.OutflowStreams[i].IsActive;
-        //             outflowStreamsDto.LastAmount = RecurringResponse.OutflowStreams[i].LastAmount;
-        //             outflowStreamsDto.LastDate = RecurringResponse.OutflowStreams[i].LastDate.ToDateTime(TimeOnly.Parse("00:00:00"));
-        //             outflowStreamsDto.MerchantName = RecurringResponse.OutflowStreams[i].MerchantName;
-        //             outflowStreamsDto.Status = RecurringResponse.OutflowStreams[i].Status;
-        //             outflowStreamsDto.StreamId = RecurringResponse.OutflowStreams[i].StreamId;
-
-        //             response.Data.OutflowStream.Add(outflowStreamsDto);
-        //         }
-
-        //     }
-        //     catch (System.Exception ex)
-        //     {
-        //         Console.WriteLine("Recurring Transactions failed: " + ex.Message);
-        //         response.Success = false;
-        //         response.Message = ex.Message;
-        //         return response;
-        //     }
-
-        //     return response;
-        // }
     }
 }
