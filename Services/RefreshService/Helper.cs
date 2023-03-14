@@ -34,7 +34,7 @@ namespace financing_api.Services.RefreshService
         {
             dbAccount.AccountId = account.AccountId;
             dbAccount.UserId = user.Id;
-            dbAccount.Name = account.Name;
+            //dbAccount.Name = account.Name;
             dbAccount.OfficialName = account.OfficialName;
             dbAccount.Mask = account.Mask;
             dbAccount.Type = account.Type.ToString();
