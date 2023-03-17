@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static financing_api.Enums.Enum;
 
 namespace financing_api.Models
 {
@@ -18,7 +19,7 @@ namespace financing_api.Models
         public DateTime FirstDate { get; set; }
         public DateTime LastDate { get; set; }
         public DateTime? DueDate { get; set; }
-        public string Frequency { get; set; }
+        public EFrequency? Frequency { get; set; }
         public decimal LastAmount { get; set; }
         public bool IsActive { get; set; }
         public string Status { get; set; }

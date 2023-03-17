@@ -128,7 +128,7 @@ namespace financing_api.Services.RefreshService
                 if (!stream.Category.Contains("Internal Account Transfer") && (!stream.Category.Contains("Interest")))
                 {
                     var dbRecurring = context.Recurrings
-                        .FirstOrDefault(r => r.StreamId == stream.StreamId || r.Description == stream.Description && r.MerchantName == stream.MerchantName && r.FirstDate == stream.FirstDate.ToDateTime(TimeOnly.Parse("00:00:00")) && r.LastAmount == stream.LastAmount.Amount * -1);
+                        .FirstOrDefault(r => r.StreamId == stream.StreamId || r.Description == stream.Description && r.FirstDate == stream.FirstDate.ToDateTime(TimeOnly.Parse("00:00:00")) && r.LastAmount == stream.LastAmount.Amount * -1);
 
                     if (dbRecurring is null)
                     {

@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace financing_api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class RefreshController : ControllerBase
     {
         private readonly IRefreshService _refreshService;

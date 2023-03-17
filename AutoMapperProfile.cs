@@ -10,6 +10,7 @@ using financing_api.Dtos.Weapon;
 using financing_api.Dtos.Transaction;
 using financing_api.Dtos.Account;
 using financing_api.Dtos.Category;
+using financing_api.Dtos.Frequency;
 
 namespace financing_api
 {
@@ -36,6 +37,10 @@ namespace financing_api
             CreateMap<Category, CategoryDto>();
             CreateMap<AddCategoryDto, Category>();
             CreateMap<Category, AddCategoryDto>();
+            CreateMap<FrequencyDto, Frequency>();
+            CreateMap<Frequency, FrequencyDto>();
+            CreateMap<AddFrequencyDto, Frequency>();
+            CreateMap<Frequency, AddFrequencyDto>();
         }
     }
 }

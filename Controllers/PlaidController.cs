@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace financing_api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class PlaidController : ControllerBase
     {
         private readonly IPlaidService _plaidService;

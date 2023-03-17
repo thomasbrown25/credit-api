@@ -61,7 +61,6 @@ namespace financing_api.Services.CategoryService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Get Transactions failed: " + ex.Message);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
@@ -93,7 +92,6 @@ namespace financing_api.Services.CategoryService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Get Transactions failed: " + ex.Message);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
@@ -141,7 +139,6 @@ namespace financing_api.Services.CategoryService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Get Transactions failed: " + ex.Message);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;

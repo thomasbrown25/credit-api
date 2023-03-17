@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 namespace financing_api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;

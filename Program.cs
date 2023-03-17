@@ -24,6 +24,7 @@ using financing_api.Services.LiabilitiesService;
 using financing_api.ApiHelper;
 using financing_api.Services.RefreshService;
 using financing_api.Services.CategoryService;
+using financing_api.Services.FrequencyService;
 
 var builder = WebApplication.CreateBuilder(args);
 var configBuilder = new ConfigurationBuilder();
@@ -105,6 +106,7 @@ services.AddScoped<IWeaponService, WeaponService>();
 services.AddScoped<ITransactionsService, TransactionsService>();
 services.AddScoped<IAccountService, AccountService>();
 services.AddScoped<ICategoryService, CategoryService>();
+services.AddScoped<IFrequencyService, FrequencyService>();
 services.AddScoped<ILiabilitiesService, LiabilitiesService>();
 services.AddScoped<IRefreshService, RefreshService>();
 services.AddScoped<IAPI, API>();

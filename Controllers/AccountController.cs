@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace financing_api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;

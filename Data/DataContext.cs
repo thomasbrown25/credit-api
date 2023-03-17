@@ -35,6 +35,16 @@ namespace financing_api.Data
                         Damage = 50
                     }
                 );
+
+            modelBuilder.Entity<Frequency>()
+                .Property(f => f.Name)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Recurring>()
+                .Property(r => r.Frequency)
+                .HasConversion<string>();
+
+
         }
 
         public DbSet<Character> Characters { get; set; }
@@ -43,6 +53,7 @@ namespace financing_api.Data
         public DbSet<Skill> Skills { get; set; }
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<Frequency> Frequencies { get; set; }
         public DbSet<Recurring> Recurrings { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
     }

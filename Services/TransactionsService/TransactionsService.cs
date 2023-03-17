@@ -292,26 +292,49 @@ namespace financing_api.Services.TransactionsService
             return response;
         }
 
-        public async Task<ServiceResponse<List<RecurringDto>>> AddRecurringTransaction(AddRecurringDto newRecurring)
+        public async Task<ServiceResponse<GetRecurringDto>> AddRecurringTransaction(AddRecurringDto newRecurring)
         {
-            var response = new ServiceResponse<List<RecurringDto>>();
+            var response = new ServiceResponse<GetRecurringDto>();
+            response.Data = new GetRecurringDto();
 
             try
             {
-                // Map recurring with recurringDto
+                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
                 Recurring recurring = _mapper.Map<Recurring>(newRecurring);
 
-                // Set the current user Id
-                recurring.UserId = Utilities.GetUserId(_httpContextAccessor);
+                recurring.UserId = user.Id;
 
-                // Add recurring and save to DB
                 _context.Recurrings.Add(recurring);
+
                 await _context.SaveChangesAsync();
 
-                response.Data = await _context.Recurrings
-                    .Where(c => c.UserId == Utilities.GetUserId(_httpContextAccessor))
-                    .Select(c => _mapper.Map<RecurringDto>(c))
+                var dbRecurrings = await _context.Recurrings
+                    .Where(r => r.UserId == user.Id)
                     .ToListAsync();
+
+                response.Data.Transactions = dbRecurrings
+                                                .Where(r => r.IsActive == true)
+                                                .Select(r => _mapper.Map<RecurringDto>(r))
+                                                .OrderByDescending(r => r.DueDate).ToList();
+
+                response.Data.Incomes = dbRecurrings
+                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
+                                            .Where(r => r.IsActive == true)
+                                            .Select(r => _mapper.Map<RecurringDto>(r))
+                                            .OrderBy(r => r.DueDate)
+                                            .ToList();
+
+                response.Data.Expenses = dbRecurrings
+                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
+                                            .Where(r => r.IsActive == true)
+                                            .Select(r => _mapper.Map<RecurringDto>(r))
+                                            .OrderBy(r => r.DueDate)
+                                            .ToList();
+
+                response.Data.TotalIncome = Helper.GetTotalIncome(response.Data.Incomes);
+
+                response.Data.Tithes = Helper.GetTithes(response.Data.Incomes);
 
             }
             catch (System.Exception ex)

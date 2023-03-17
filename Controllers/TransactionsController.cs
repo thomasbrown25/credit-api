@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace financing_api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class TransactionsController : ControllerBase
     {
         private readonly ITransactionsService _transactionsService;
@@ -115,7 +115,7 @@ namespace financing_api.Controllers
 
         [Authorize]
         [HttpPost("recurring")]
-        public async Task<ActionResult<ServiceResponse<List<RecurringDto>>>> AddRecurringTransaction(AddRecurringDto newRecurring)
+        public async Task<ActionResult<ServiceResponse<GetRecurringDto>>> AddRecurringTransaction(AddRecurringDto newRecurring)
         {
             var response = await _transactionsService.AddRecurringTransaction(newRecurring);
 
