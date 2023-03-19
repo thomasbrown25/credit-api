@@ -11,7 +11,7 @@ namespace financing_api.Models
         public int Id { get; set; }
         public int UserId { get; set; }
         public string StreamId { get; set; }
-        public string AccountId { get; set; }
+        public string? AccountId { get; set; }
         public string Type { get; set; }
         public string Category { get; set; }
         public string? Description { get; set; }
