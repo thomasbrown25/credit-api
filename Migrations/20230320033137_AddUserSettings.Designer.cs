@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using financing_api.Data;
 
@@ -11,9 +12,10 @@ using financing_api.Data;
 namespace financing_api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20230320033137_AddUserSettings")]
+    partial class AddUserSettings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -378,13 +380,15 @@ namespace financing_api.Migrations
                     b.Property<bool>("DarkMode")
                         .HasColumnType("bit");
 
-                    b.Property<long?>("FontSize")
+                    b.Property<long>("FontSize")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Language")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Messages")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("NavbarFixed")
@@ -394,6 +398,7 @@ namespace financing_api.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("SidenavType")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")

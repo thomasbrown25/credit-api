@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace financing_api.Models
+namespace financing_api.Dtos.UserSetting
 {
-    public class UserSettings
+    public class GetSettingsDto
     {
         public int Id { get; set; }
         public int UserId { get; set; }

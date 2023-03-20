@@ -25,6 +25,7 @@ using financing_api.ApiHelper;
 using financing_api.Services.RefreshService;
 using financing_api.Services.CategoryService;
 using financing_api.Services.FrequencyService;
+using financing_api.Services.UserSettingService;
 
 var builder = WebApplication.CreateBuilder(args);
 var configBuilder = new ConfigurationBuilder();
@@ -109,6 +110,7 @@ services.AddScoped<ICategoryService, CategoryService>();
 services.AddScoped<IFrequencyService, FrequencyService>();
 services.AddScoped<ILiabilitiesService, LiabilitiesService>();
 services.AddScoped<IRefreshService, RefreshService>();
+services.AddScoped<IUserSettingService, UserSettingService>();
 services.AddScoped<IAPI, API>();
 
 // Authentication

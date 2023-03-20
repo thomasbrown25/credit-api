@@ -56,5 +56,6 @@ namespace financing_api.Data
         public DbSet<Frequency> Frequencies { get; set; }
         public DbSet<Recurring> Recurrings { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<UserSettings> UserSettings { get; set; }
     }
 }

@@ -11,6 +11,7 @@ using financing_api.Dtos.Transaction;
 using financing_api.Dtos.Account;
 using financing_api.Dtos.Category;
 using financing_api.Dtos.Frequency;
+using financing_api.Dtos.UserSetting;
 
 namespace financing_api
 {
@@ -41,6 +42,8 @@ namespace financing_api
             CreateMap<Frequency, FrequencyDto>();
             CreateMap<AddFrequencyDto, Frequency>();
             CreateMap<Frequency, AddFrequencyDto>();
+            CreateMap<SettingsDto, UserSettings>();
+            CreateMap<UserSettings, SettingsDto>();
         }
     }
 }
