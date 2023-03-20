@@ -153,7 +153,7 @@ namespace financing_api.Services.TransactionsService
                                             .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
                                             .Where(r => r.IsActive == true)
                                             .Select(r => _mapper.Map<RecurringDto>(r))
-                                            .OrderBy(r => r.DueDate)
+                                            .OrderByDescending(r => r.LastAmount)
                                             .ToList();
 
                 response.Data.Expenses = dbRecurrings
@@ -270,7 +270,7 @@ namespace financing_api.Services.TransactionsService
                                             .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
                                             .Where(r => r.IsActive == true)
                                             .Select(r => _mapper.Map<RecurringDto>(r))
-                                            .OrderBy(r => r.DueDate)
+                                            .OrderByDescending(r => r.LastAmount)
                                             .ToList();
 
                 response.Data.Expenses = dbRecurrings
@@ -322,7 +322,7 @@ namespace financing_api.Services.TransactionsService
                                             .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
                                             .Where(r => r.IsActive == true)
                                             .Select(r => _mapper.Map<RecurringDto>(r))
-                                            .OrderBy(r => r.DueDate)
+                                            .OrderByDescending(r => r.LastAmount)
                                             .ToList();
 
                 response.Data.Expenses = dbRecurrings
@@ -376,6 +376,49 @@ namespace financing_api.Services.TransactionsService
                                             .Where(r => r.IsActive == true)
                                             .Select(r => _mapper.Map<RecurringDto>(r))
                                             .OrderBy(r => r.DueDate)
+                                            .ToList();
+                }
+
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                response.Success = false;
+                response.Message = ex.Message;
+                return response;
+            }
+
+            return response;
+        }
+
+        public async Task<ServiceResponse<GetRecurringDto>> UpdateIncome(UpdateRecurringDto updatedRecurring)
+        {
+            var response = new ServiceResponse<GetRecurringDto>();
+            response.Data = new GetRecurringDto();
+
+            try
+            {
+                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
+                Recurring recurring = await _context.Recurrings
+                    .FirstOrDefaultAsync(c => c.Id == updatedRecurring.Id);
+
+                // confirm that current user is owner
+                if (recurring.UserId == user.Id)
+                {
+                    _mapper.Map<UpdateRecurringDto, Recurring>(updatedRecurring, recurring);
+
+                    await _context.SaveChangesAsync();
+
+                    var dbRecurrings = await _context.Recurrings
+                                        .Where(r => r.UserId == user.Id)
+                                        .ToListAsync();
+
+                    response.Data.Incomes = dbRecurrings
+                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
+                                            .Where(r => r.IsActive == true)
+                                            .Select(r => _mapper.Map<RecurringDto>(r))
+                                            .OrderByDescending(r => r.LastAmount)
                                             .ToList();
                 }
 
@@ -514,7 +557,7 @@ namespace financing_api.Services.TransactionsService
                     .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
                     .Where(r => r.IsActive == true)
                     .Select(r => _mapper.Map<RecurringDto>(r))
-                    .OrderBy(r => r.DueDate)
+                    .OrderByDescending(r => r.LastAmount)
                     .ToList();
 
             }
@@ -561,7 +604,7 @@ namespace financing_api.Services.TransactionsService
                     .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
                     .Where(r => r.IsActive == true)
                     .Select(r => _mapper.Map<RecurringDto>(r))
-                    .OrderBy(r => r.DueDate)
+                    .OrderByDescending(r => r.LastAmount)
                     .ToList();
 
             }

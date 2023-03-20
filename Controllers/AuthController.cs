@@ -23,7 +23,7 @@ namespace financing_api.Controllers
         public AuthController(
             IAuthService authService,
             IConfiguration configuration,
-            IOptionsSnapshot<Settings> options
+            IOptionsSnapshot<UserSettings> options
         )
         {
             _authService = authService;

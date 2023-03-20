@@ -140,6 +140,19 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
+        [HttpPost("recurring/income/{transactionId}")]
+        public async Task<ActionResult<ServiceResponse<GetRecurringDto>>> UpdateIncome(UpdateRecurringDto updatedRecurring)
+        {
+            var response = await _transactionsService.UpdateIncome(updatedRecurring);
+
+            if (!response.Success)
+            { // need to set this to server error
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+
+        [Authorize]
         [HttpPost("recurring/disable/{transactionId}")]
         public async Task<ActionResult<ServiceResponse<GetRecurringDto>>> DisableRecurringTransaction(int transactionId)
         {

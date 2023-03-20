@@ -39,7 +39,6 @@ namespace financing_api.Services.FrequencyService
                 response.Data = new GetFrequencyDto();
 
                 var dbFrequencies = await _context.Frequencies
-                                   .OrderBy(f => f.Name)
                                    .ToListAsync();
 
                 response.Data.Frequencies = dbFrequencies.Select(f => _mapper.Map<FrequencyDto>(f)).ToList();
