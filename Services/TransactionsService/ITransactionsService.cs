@@ -9,11 +9,9 @@ namespace financing_api.Services.TransactionsService
     public interface ITransactionsService
     {
         Task<ServiceResponse<GetTransactionsDto>> GetTransactions();
-        Task<ServiceResponse<GetTransactionsDto>> RefreshTransactions();
         Task<ServiceResponse<GetTransactionsDto>> GetAccountTransactions(string accountId);
         Task<ServiceResponse<GetRecurringDto>> GetRecurringTransactions();
         Task<ServiceResponse<GetRecurringDto>> GetExpenses();
-        Task<ServiceResponse<GetRecurringDto>> RefreshRecurringTransactions();
         Task<ServiceResponse<GetRecurringDto>> AddRecurringTransaction(AddRecurringDto newRecurring);
         Task<ServiceResponse<GetRecurringDto>> UpdateRecurringTransaction(UpdateRecurringDto updatedRecurring);
         Task<ServiceResponse<GetRecurringDto>> UpdateIncome(UpdateRecurringDto updatedRecurring);

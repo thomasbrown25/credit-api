@@ -92,7 +92,7 @@ namespace financing_api.Services.RefreshService
                 foreach (var transaction in result.Transactions)
                 {
                     var dbTransaction = await _context.Transactions
-                        .FirstOrDefaultAsync(t => t.TransactionId == transaction.TransactionId || t.UserId == user.Id && t.AccountId == transaction.AccountId && t.Name == transaction.Name && t.MerchantName == transaction.MerchantName && t.Amount == transaction.Amount.ToString());
+                        .FirstOrDefaultAsync(t => t.TransactionId == transaction.TransactionId || t.AccountId == transaction.AccountId && t.Name == transaction.Name && t.MerchantName == transaction.MerchantName && t.Amount == transaction.Amount.ToString() && t.Date == transaction.Date.ToDateTime(TimeOnly.Parse("00:00:00")));
 
                     if (dbTransaction is null)
                     {

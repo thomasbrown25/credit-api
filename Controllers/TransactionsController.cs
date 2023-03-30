@@ -36,19 +36,6 @@ namespace financing_api.Controllers
         }
 
         [Authorize]
-        [HttpPost("refresh")]
-        public async Task<ActionResult<ServiceResponse<GetTransactionsDto>>> RefreshTransactions()
-        {
-            var response = await _transactionsService.RefreshTransactions();
-
-            if (!response.Success)
-            { // need to set this to server error
-                return BadRequest(response);
-            }
-            return Ok(response);
-        }
-
-        [Authorize]
         [HttpGet("recurring")]
         public async Task<ActionResult<ServiceResponse<GetRecurringDto>>> GetRecurringTransactions()
         {
@@ -157,19 +144,6 @@ namespace financing_api.Controllers
         public async Task<ActionResult<ServiceResponse<GetRecurringDto>>> DisableRecurringTransaction(int transactionId)
         {
             var response = await _transactionsService.DisableRecurringTransaction(transactionId);
-
-            if (!response.Success)
-            { // need to set this to server error
-                return BadRequest(response);
-            }
-            return Ok(response);
-        }
-
-        [Authorize]
-        [HttpPost("recurring/refresh")]
-        public async Task<ActionResult<ServiceResponse<List<RecurringDto>>>> RefreshRecurringTransactions()
-        {
-            var response = await _transactionsService.RefreshRecurringTransactions();
 
             if (!response.Success)
             { // need to set this to server error

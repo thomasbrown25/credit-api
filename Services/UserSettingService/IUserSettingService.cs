@@ -9,5 +9,6 @@ namespace financing_api.Services.UserSettingService
     public interface IUserSettingService
     {
         Task<ServiceResponse<SettingsDto>> GetSettings();
+        Task<ServiceResponse<SettingsDto>> SaveSettings(SettingsDto newSettings);
     }
 }

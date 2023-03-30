@@ -16,6 +16,7 @@ using financing_api.Dtos.Account;
 using financing_api.Utils;
 using System.Collections;
 using financing_api.ApiHelper;
+using financing_api.DAL;
 
 namespace financing_api.Services.TransactionsService
 {
@@ -28,6 +29,7 @@ namespace financing_api.Services.TransactionsService
         private readonly PlaidClient _client;
         private readonly IMapper _mapper;
         private readonly IAPI _api;
+        private readonly TransactionDAL _transactionDal;
 
         public TransactionsService(
             DataContext context,
@@ -36,7 +38,8 @@ namespace financing_api.Services.TransactionsService
             IOptions<PlaidCredentials> credentials,
             PlaidClient client,
             IMapper mapper,
-            IAPI api
+            IAPI api,
+            TransactionDAL transactionDAL
         )
         {
             _context = context;
@@ -46,6 +49,7 @@ namespace financing_api.Services.TransactionsService
             _client = new PlaidClient(Going.Plaid.Environment.Development);
             _mapper = mapper;
             _api = api;
+            _transactionDal = transactionDAL;
         }
 
         public async Task<ServiceResponse<GetTransactionsDto>> GetTransactions()
@@ -58,12 +62,9 @@ namespace financing_api.Services.TransactionsService
 
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                var dbTransactions = await _context.Transactions
-                                   .Where(c => c.UserId == user.Id)
-                                   .OrderByDescending(c => c.Date)
-                                   .ToListAsync();
+                var dbTransactions = _transactionDal.GetDbTransactions(user).Result;
 
-                response.Data.Transactions = dbTransactions.Select(c => _mapper.Map<TransactionDto>(c)).ToList();
+                response.Data.Transactions = _transactionDal.GetTransactions(dbTransactions);
             }
             catch (System.Exception ex)
             {
@@ -75,61 +76,6 @@ namespace financing_api.Services.TransactionsService
             return response;
         }
 
-        public async Task<ServiceResponse<GetTransactionsDto>> RefreshTransactions()
-        {
-            var response = new ServiceResponse<GetTransactionsDto>();
-            try
-            {
-                response.Data = new GetTransactionsDto();
-                response.Data.Transactions = new List<TransactionDto>();
-
-                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
-
-                var result = await _api.GetTransactionsRequest(user);
-
-                if (result is not null && result.Error is not null)
-                {
-                    Console.WriteLine("Plaid Error: " + result.Error.ErrorMessage);
-                    response.Success = false;
-                    response.Message = result.Error.ErrorMessage;
-                    return response;
-                }
-
-                foreach (var transaction in result.Transactions)
-                {
-                    var dbTransaction = await _context.Transactions
-                        .FirstOrDefaultAsync(t => t.TransactionId == transaction.TransactionId);
-
-                    if (dbTransaction is null)
-                    {
-                        var transactionDto = Helper.MapPlaidStream(new TransactionDto(), transaction, user);
-
-                        Transaction transactionDb = _mapper.Map<Transaction>(transactionDto);
-                        _context.Transactions.Add(transactionDb);
-                    }
-                }
-
-                await _context.SaveChangesAsync();
-
-                var dbTransactions = await _context.Transactions
-                                   .Where(c => c.UserId == user.Id)
-                                   .ToListAsync();
-
-                response.Data.Transactions = dbTransactions.Select(c => _mapper.Map<TransactionDto>(c)).ToList();
-
-            }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine("Refresh Transactions failed: " + ex.Message);
-                response.Success = false;
-                response.Message = ex.Message + " --------- Inner Exception: " + ex.InnerException.Message;
-                return response;
-            }
-
-            return response;
-        }
-
-        // Get Recurring Transactions
         public async Task<ServiceResponse<GetRecurringDto>> GetRecurringTransactions()
         {
             var response = new ServiceResponse<GetRecurringDto>();
@@ -140,28 +86,13 @@ namespace financing_api.Services.TransactionsService
                 // Get user for accessToken
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                var dbRecurrings = await _context.Recurrings
-                    .Where(r => r.UserId == user.Id)
-                    .ToListAsync();
+                var dbRecurrings = _transactionDal.GetDbRecurrings(user).Result;
 
-                response.Data.Transactions = dbRecurrings
-                                                .Where(r => r.IsActive == true)
-                                                .Select(r => _mapper.Map<RecurringDto>(r))
-                                                .OrderByDescending(r => r.DueDate).ToList();
+                response.Data.Transactions = _transactionDal.GetRecurringTransactions(dbRecurrings);
 
-                response.Data.Incomes = dbRecurrings
-                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
-                                            .Where(r => r.IsActive == true)
-                                            .Select(r => _mapper.Map<RecurringDto>(r))
-                                            .OrderByDescending(r => r.LastAmount)
-                                            .ToList();
+                response.Data.Incomes = _transactionDal.GetIncomes(dbRecurrings);
 
-                response.Data.Expenses = dbRecurrings
-                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
-                                            .Where(r => r.IsActive == true)
-                                            .Select(r => _mapper.Map<RecurringDto>(r))
-                                            .OrderBy(r => r.DueDate)
-                                            .ToList();
+                response.Data.Expenses = _transactionDal.GetExpenses(dbRecurrings);
 
                 response.Data.TotalIncome = Helper.GetTotalIncome(response.Data.Incomes);
 
@@ -190,16 +121,9 @@ namespace financing_api.Services.TransactionsService
                 // Get user for accessToken
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                var dbRecurrings = await _context.Recurrings
-                    .Where(r => r.UserId == user.Id)
-                    .ToListAsync();
+                var dbRecurrings = _transactionDal.GetDbRecurrings(user).Result;
 
-                response.Data.Expenses = dbRecurrings
-                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
-                                            .Where(r => r.IsActive == true)
-                                            .Select(r => _mapper.Map<RecurringDto>(r))
-                                            .OrderBy(r => r.DueDate)
-                                            .ToList();
+                response.Data.Expenses = _transactionDal.GetExpenses(dbRecurrings);
 
             }
             catch (System.Exception ex)
@@ -207,85 +131,6 @@ namespace financing_api.Services.TransactionsService
                 Console.WriteLine("Recurring Transactions failed: " + ex.Message);
                 response.Success = false;
                 response.Message = ex.Message;
-                return response;
-            }
-
-            return response;
-        }
-
-        public async Task<ServiceResponse<GetRecurringDto>> RefreshRecurringTransactions()
-        {
-            var response = new ServiceResponse<GetRecurringDto>();
-
-            try
-            {
-                response.Data = new GetRecurringDto();
-
-                // Get user for accessToken6
-                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
-
-                // Get Account IDs 
-                var getAccountRequest = new Going.Plaid.Accounts.AccountsGetRequest()
-                {
-                    ClientId = _configuration["PlaidClientId"],
-                    Secret = _configuration["PlaidSecret"],
-                    AccessToken = user.AccessToken
-                };
-
-                var accountResponse = await _client.AccountsGetAsync(getAccountRequest);
-
-                if (accountResponse.Error is not null)
-                {
-                    Console.WriteLine(accountResponse.Error.ErrorMessage);
-                    response.Success = false;
-                    response.Message = accountResponse.Error.ErrorMessage;
-                    return response;
-                }
-
-                var recurringResponse = _api.GetRecurringTransactionsRequest(user, accountResponse);
-
-                if (recurringResponse.Result.Error is not null)
-                {
-                    Console.WriteLine(recurringResponse.Result.Error.ErrorMessage);
-                    response.Success = false;
-                    response.Message = recurringResponse.Result.Error.ErrorMessage;
-                    return response;
-                }
-
-                // add streams to context 
-                Helper.AddStreams(recurringResponse.Result.InflowStreams, _context, _mapper, user);
-                Helper.AddStreams(recurringResponse.Result.OutflowStreams, _context, _mapper, user);
-
-                // save streams to context
-                await _context.SaveChangesAsync();
-
-                // get all recurrings
-                var dbRecurrings = await _context.Recurrings
-                    .Where(c => c.UserId == user.Id)
-                    .ToListAsync();
-
-                response.Data.Transactions = dbRecurrings.Select(r => _mapper.Map<RecurringDto>(r)).OrderByDescending(r => r.DueDate).ToList();
-
-                response.Data.Incomes = dbRecurrings
-                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
-                                            .Where(r => r.IsActive == true)
-                                            .Select(r => _mapper.Map<RecurringDto>(r))
-                                            .OrderByDescending(r => r.LastAmount)
-                                            .ToList();
-
-                response.Data.Expenses = dbRecurrings
-                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
-                                            .Where(r => r.IsActive == true)
-                                            .Select(r => _mapper.Map<RecurringDto>(r))
-                                            .OrderBy(r => r.DueDate)
-                                            .ToList();
-
-            }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
-                response.Success = false;
-                response.Message = ex.Message + " --------- Inner Exception: " + ex.InnerException.Message;
                 return response;
             }
 
@@ -309,28 +154,13 @@ namespace financing_api.Services.TransactionsService
 
                 await _context.SaveChangesAsync();
 
-                var dbRecurrings = await _context.Recurrings
-                    .Where(r => r.UserId == user.Id)
-                    .ToListAsync();
+                var dbRecurrings = _transactionDal.GetDbRecurrings(user).Result;
 
-                response.Data.Transactions = dbRecurrings
-                                                .Where(r => r.IsActive == true)
-                                                .Select(r => _mapper.Map<RecurringDto>(r))
-                                                .OrderByDescending(r => r.DueDate).ToList();
+                response.Data.Transactions = _transactionDal.GetRecurringTransactions(dbRecurrings);
 
-                response.Data.Incomes = dbRecurrings
-                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
-                                            .Where(r => r.IsActive == true)
-                                            .Select(r => _mapper.Map<RecurringDto>(r))
-                                            .OrderByDescending(r => r.LastAmount)
-                                            .ToList();
+                response.Data.Incomes = _transactionDal.GetIncomes(dbRecurrings);
 
-                response.Data.Expenses = dbRecurrings
-                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
-                                            .Where(r => r.IsActive == true)
-                                            .Select(r => _mapper.Map<RecurringDto>(r))
-                                            .OrderBy(r => r.DueDate)
-                                            .ToList();
+                response.Data.Expenses = _transactionDal.GetExpenses(dbRecurrings);
 
                 response.Data.TotalIncome = Helper.GetTotalIncome(response.Data.Incomes);
 
@@ -357,26 +187,18 @@ namespace financing_api.Services.TransactionsService
             {
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                Recurring recurring = await _context.Recurrings
-                    .FirstOrDefaultAsync(c => c.Id == updatedRecurring.Id);
+                var dbRecurring = _transactionDal.GetDbRecurring(updatedRecurring.Id).Result;
 
                 // confirm that current user is owner
-                if (recurring.UserId == user.Id)
+                if (dbRecurring.UserId == user.Id)
                 {
-                    _mapper.Map<UpdateRecurringDto, Recurring>(updatedRecurring, recurring);
+                    _mapper.Map<UpdateRecurringDto, Recurring>(updatedRecurring, dbRecurring);
 
                     await _context.SaveChangesAsync();
 
-                    var dbRecurrings = await _context.Recurrings
-                                        .Where(r => r.UserId == user.Id)
-                                        .ToListAsync();
+                    var dbRecurrings = _transactionDal.GetDbRecurrings(user).Result;
 
-                    response.Data.Expenses = dbRecurrings
-                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
-                                            .Where(r => r.IsActive == true)
-                                            .Select(r => _mapper.Map<RecurringDto>(r))
-                                            .OrderBy(r => r.DueDate)
-                                            .ToList();
+                    response.Data.Expenses = _transactionDal.GetExpenses(dbRecurrings);
                 }
 
             }
@@ -400,26 +222,18 @@ namespace financing_api.Services.TransactionsService
             {
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                Recurring recurring = await _context.Recurrings
-                    .FirstOrDefaultAsync(c => c.Id == updatedRecurring.Id);
+                var dbRecurring = _transactionDal.GetDbRecurring(updatedRecurring.Id).Result;
 
                 // confirm that current user is owner
-                if (recurring.UserId == user.Id)
+                if (dbRecurring.UserId == user.Id)
                 {
-                    _mapper.Map<UpdateRecurringDto, Recurring>(updatedRecurring, recurring);
+                    _mapper.Map<UpdateRecurringDto, Recurring>(updatedRecurring, dbRecurring);
 
                     await _context.SaveChangesAsync();
 
-                    var dbRecurrings = await _context.Recurrings
-                                        .Where(r => r.UserId == user.Id)
-                                        .ToListAsync();
+                    var dbRecurrings = _transactionDal.GetDbRecurrings(user).Result;
 
-                    response.Data.Incomes = dbRecurrings
-                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
-                                            .Where(r => r.IsActive == true)
-                                            .Select(r => _mapper.Map<RecurringDto>(r))
-                                            .OrderByDescending(r => r.LastAmount)
-                                            .ToList();
+                    response.Data.Incomes = _transactionDal.GetIncomes(dbRecurrings);
                 }
 
             }
@@ -443,8 +257,7 @@ namespace financing_api.Services.TransactionsService
             {
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                Recurring dbRecurring = await _context.Recurrings
-                    .FirstOrDefaultAsync(r => r.Id == transactionId);
+                var dbRecurring = _transactionDal.GetDbRecurring(transactionId).Result;
 
                 // confirm that current user is owner
                 if (dbRecurring.UserId == user.Id)
@@ -454,16 +267,9 @@ namespace financing_api.Services.TransactionsService
 
                     await _context.SaveChangesAsync();
 
-                    var dbRecurrings = await _context.Recurrings
-                                        .Where(r => r.UserId == user.Id)
-                                        .ToListAsync();
+                    var dbRecurrings = _transactionDal.GetDbRecurrings(user).Result;
 
-                    response.Data.Expenses = dbRecurrings
-                                            .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
-                                            .Where(r => r.IsActive == true)
-                                            .Select(r => _mapper.Map<RecurringDto>(r))
-                                            .OrderBy(r => r.DueDate)
-                                            .ToList();
+                    response.Data.Expenses = _transactionDal.GetExpenses(dbRecurrings);
                 }
 
             }
@@ -490,21 +296,11 @@ namespace financing_api.Services.TransactionsService
                 // Get user for accessToken
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                var dbTransactions = await _context.Transactions
-                    .Where(r => r.UserId == user.Id)
-                    .OrderByDescending(r => r.Date)
-                    .ToListAsync();
+                var dbTransactions = _transactionDal.GetDbTransactions(user).Result;
 
-                response.Data.Transactions = dbTransactions
-                                            .Where(t => t.AccountId == accountId)
-                                            .Select(t => _mapper.Map<TransactionDto>(t))
-                                            .ToList();
+                response.Data.Transactions = _transactionDal.GetAccountTransactions(dbTransactions, accountId);
 
-                var todayTransactions = dbTransactions
-                                            .Where(t => t.AccountId == accountId)
-                                            .Where(t => t.Date == DateTime.Today)
-                                            .Select(t => _mapper.Map<TransactionDto>(t))
-                                            .ToList();
+                var todayTransactions = _transactionDal.GetTodaysTransactions(dbTransactions, accountId);
 
                 decimal totalAmount = 0;
                 foreach (var transaction in todayTransactions)
@@ -540,26 +336,15 @@ namespace financing_api.Services.TransactionsService
                 // Get user for accessToken
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                var dbIncome = await _context.Recurrings
-                    .Where(r => r.UserId == user.Id)
-                    .Where(r => r.StreamId == incomeId)
-                    .SingleOrDefaultAsync();
+                var dbIncome = _transactionDal.GetIncome(user, incomeId).Result;
 
                 _context.Recurrings.Remove(dbIncome);
 
                 await _context.SaveChangesAsync();
 
-                var dbRecurrings = await _context.Recurrings
-                    .Where(r => r.UserId == user.Id)
-                    .ToListAsync();
+                var dbRecurrings = _transactionDal.GetDbRecurrings(user).Result;
 
-                response.Data.Incomes = dbRecurrings
-                    .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
-                    .Where(r => r.IsActive == true)
-                    .Select(r => _mapper.Map<RecurringDto>(r))
-                    .OrderByDescending(r => r.LastAmount)
-                    .ToList();
-
+                response.Data.Incomes = _transactionDal.GetIncomes(dbRecurrings);
             }
             catch (System.Exception ex)
             {
@@ -584,28 +369,15 @@ namespace financing_api.Services.TransactionsService
                 // Get user for accessToken
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                var dbIncome = await _context.Recurrings
-                    .Where(r => r.UserId == user.Id)
-                    .Where(r => r.StreamId == incomeId)
-                    .SingleOrDefaultAsync();
+                var dbIncome = _transactionDal.GetIncome(user, incomeId).Result;
 
-                if (dbIncome is not null)
-                {
-                    dbIncome.IsActive = recurringDto.IsActive;
-                }
+                dbIncome.IsActive = recurringDto.IsActive;
 
                 await _context.SaveChangesAsync();
 
-                var dbRecurrings = await _context.Recurrings
-                    .Where(r => r.UserId == user.Id)
-                    .ToListAsync();
+                var dbRecurrings = _transactionDal.GetDbRecurrings(user).Result;
 
-                response.Data.Incomes = dbRecurrings
-                    .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
-                    .Where(r => r.IsActive == true)
-                    .Select(r => _mapper.Map<RecurringDto>(r))
-                    .OrderByDescending(r => r.LastAmount)
-                    .ToList();
+                response.Data.Incomes = _transactionDal.GetIncomes(dbRecurrings);
 
             }
             catch (System.Exception ex)

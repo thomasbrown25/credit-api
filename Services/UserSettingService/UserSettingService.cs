@@ -53,5 +53,33 @@ namespace financing_api.Services.UserSettingService
             }
             return response;
         }
+
+        public async Task<ServiceResponse<SettingsDto>> SaveSettings(SettingsDto newSettings)
+        {
+            var response = new ServiceResponse<SettingsDto>();
+
+            try
+            {
+                response.Data = new SettingsDto();
+
+                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
+                var dbSettings = await _context.UserSettings
+                                   .SingleOrDefaultAsync(s => s.UserId == user.Id);
+
+                _mapper.Map<SettingsDto, UserSettings>(newSettings, dbSettings);
+
+                await _context.SaveChangesAsync();
+
+                response.Data = newSettings;
+            }
+            catch (System.Exception ex)
+            {
+                response.Success = false;
+                response.Message = ex.Message;
+                return response;
+            }
+            return response;
+        }
     }
 }

@@ -26,6 +26,7 @@ using financing_api.Services.RefreshService;
 using financing_api.Services.CategoryService;
 using financing_api.Services.FrequencyService;
 using financing_api.Services.UserSettingService;
+using financing_api.DAL;
 
 var builder = WebApplication.CreateBuilder(args);
 var configBuilder = new ConfigurationBuilder();
@@ -112,6 +113,8 @@ services.AddScoped<ILiabilitiesService, LiabilitiesService>();
 services.AddScoped<IRefreshService, RefreshService>();
 services.AddScoped<IUserSettingService, UserSettingService>();
 services.AddScoped<IAPI, API>();
+
+services.AddTransient<TransactionDAL>();
 
 // Authentication
 services

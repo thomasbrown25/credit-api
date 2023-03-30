@@ -32,5 +32,18 @@ namespace financing_api.Controllers
             }
             return Ok(response);
         }
+
+        [Authorize]
+        [HttpPost("")]
+        public async Task<ActionResult<ServiceResponse<SettingsDto>>> SaveSettings(SettingsDto newSettings)
+        {
+            var response = await _userSettingService.SaveSettings(newSettings);
+
+            if (!response.Success)
+            { // need to set this to server error
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
     }
 }
