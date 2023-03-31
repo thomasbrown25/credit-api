@@ -138,7 +138,36 @@ namespace financing_api.Services.RefreshService
                         Recurring recurringDb = mapper.Map<Recurring>(recurring);
                         context.Recurrings.Add(recurringDb);
                     }
+                    else
+                    {
+                        if (dbRecurring.IsActive && (dbRecurring.DueDate < DateTime.Today.AddDays(-5) || dbRecurring.Type == EType.Income.ToString() && dbRecurring.DueDate <= DateTime.Today))
+                        {
+                            RefreshDueDate(ref dbRecurring);
+                        }
+                    }
                 }
+            }
+        }
+
+        public static void RefreshDueDate(ref Recurring recurring)
+        {
+            DateTime dueDate = (DateTime)recurring.DueDate;
+
+            if (recurring.Frequency.ToString().ToLower() == "monthly")
+            {
+                recurring.DueDate = dueDate.AddMonths(1);
+            }
+            else if (recurring.Frequency.ToString().ToLower() == "biweekly" || recurring.Frequency.ToString().ToLower() == "semimonthly")
+            {
+                recurring.DueDate = dueDate.AddDays(14);
+            }
+            else if (recurring.Frequency.ToString().ToLower() == "weekly")
+            {
+                recurring.DueDate = dueDate.AddDays(7);
+            }
+            else
+            {
+                recurring.DueDate = dueDate.AddMonths(1);
             }
         }
 

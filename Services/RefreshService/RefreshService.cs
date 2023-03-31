@@ -119,7 +119,7 @@ namespace financing_api.Services.RefreshService
 
                 await _context.SaveChangesAsync();
 
-                // Get Recurring Transactions
+                // Recurring Transactions
                 var getAccountRequest = new Going.Plaid.Accounts.AccountsGetRequest()
                 {
                     ClientId = _configuration["PlaidClientId"],
