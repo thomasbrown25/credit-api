@@ -27,6 +27,8 @@ using financing_api.Services.CategoryService;
 using financing_api.Services.FrequencyService;
 using financing_api.Services.UserSettingService;
 using financing_api.DAL;
+using financing_api.Logger;
+using financing_api.DbLogger;
 
 var builder = WebApplication.CreateBuilder(args);
 var configBuilder = new ConfigurationBuilder();
@@ -74,7 +76,11 @@ builder.Logging.AddEventSourceLogger();
 
 // Add services to the container.
 services.AddDbContext<DataContext>(
-    options => options.UseSqlServer(configuration["DbConnectionString"])
+    options =>
+    {
+        options.UseSqlServer(configuration["DbConnectionString"]);
+    },
+        ServiceLifetime.Transient
 );
 
 services.AddControllers();
@@ -114,6 +120,7 @@ services.AddScoped<IRefreshService, RefreshService>();
 services.AddScoped<IUserSettingService, UserSettingService>();
 services.AddScoped<IAPI, API>();
 
+services.AddTransient<ILogging, Logging>();
 services.AddTransient<TransactionDAL>();
 
 // Authentication

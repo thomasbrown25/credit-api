@@ -11,6 +11,7 @@ using Going.Plaid;
 using Going.Plaid.Entity;
 using Going.Plaid.Link;
 using financing_api.ApiHelper;
+using financing_api.DbLogger;
 
 namespace financing_api.Services.PlaidService
 {
@@ -21,13 +22,15 @@ namespace financing_api.Services.PlaidService
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly PlaidClient _client;
         private readonly IAPI _api;
+        private readonly ILogging _logging;
 
         public PlaidService(
             DataContext context,
             IConfiguration configuration,
             IHttpContextAccessor httpContextAccessor,
             PlaidClient client,
-             IAPI api
+             IAPI api,
+            ILogging logging
         )
         {
             _context = context;
@@ -35,6 +38,7 @@ namespace financing_api.Services.PlaidService
             _httpContextAccessor = httpContextAccessor;
             _client = new PlaidClient(Going.Plaid.Environment.Development);
             _api = api;
+            _logging = logging;
         }
 
         public async Task<ServiceResponse<string>> CreateLinkToken()
@@ -64,6 +68,7 @@ namespace financing_api.Services.PlaidService
             }
             catch (Exception ex)
             {
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
             }
@@ -98,6 +103,7 @@ namespace financing_api.Services.PlaidService
             }
             catch (Exception ex)
             {
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
             }
@@ -108,16 +114,26 @@ namespace financing_api.Services.PlaidService
         {
             ServiceResponse<string> response = new ServiceResponse<string>();
 
-            // Exchange publicToken for accessToken
-            var exchangeResponse = _api.PublicTokenExchangeRequest(publicToken);
+            try
+            {
+                // Exchange publicToken for accessToken
+                var exchangeResponse = _api.PublicTokenExchangeRequest(publicToken);
 
-            // Save accessToken to SQL DB
-            var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
-            user.AccessToken = exchangeResponse.Result.AccessToken;
+                // Save accessToken to SQL DB
+                var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+                user.AccessToken = exchangeResponse.Result.AccessToken;
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-            response.Data = exchangeResponse.Result.AccessToken;
+                response.Data = exchangeResponse.Result.AccessToken;
+            }
+            catch (System.Exception ex)
+            {
+                _logging.LogException(ex);
+                response.Success = false;
+                response.Message = ex.Message;
+            }
+
 
             return response;
         }

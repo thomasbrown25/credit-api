@@ -9,12 +9,12 @@ namespace financing_api.Models
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-        public long? FontSize { get; set; }
-        public string? Language { get; set; }
+        public long? FontSize { get; set; } = 0;
+        public string? Language { get; set; } = "English";
         public string? Messages { get; set; }
-        public bool DarkMode { get; set; }
-        public bool SidenavMini { get; set; }
-        public bool NavbarFixed { get; set; }
-        public string? SidenavType { get; set; }
+        public bool DarkMode { get; set; } = true;
+        public bool SidenavMini { get; set; } = false;
+        public bool NavbarFixed { get; set; } = true;
+        public string? SidenavType { get; set; } = "dark";
     }
 }

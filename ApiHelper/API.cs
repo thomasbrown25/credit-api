@@ -9,6 +9,7 @@ using AutoMapper;
 using Microsoft.Extensions.Options;
 using Going.Plaid.Entity;
 using financing_api.Utils;
+using financing_api.DbLogger;
 
 namespace financing_api.ApiHelper
 {
@@ -20,6 +21,7 @@ namespace financing_api.ApiHelper
         private readonly PlaidCredentials _credentials;
         private readonly PlaidClient _client;
         private readonly IMapper _mapper;
+        private readonly ILogging _logging;
 
         public API(
             DataContext context,
@@ -27,7 +29,8 @@ namespace financing_api.ApiHelper
             IHttpContextAccessor httpContextAccessor,
             IOptions<PlaidCredentials> credentials,
             PlaidClient client,
-            IMapper mapper
+            IMapper mapper,
+            ILogging logging
         )
         {
             _context = context;
@@ -36,6 +39,7 @@ namespace financing_api.ApiHelper
             _credentials = credentials.Value;
             _client = new PlaidClient(Going.Plaid.Environment.Development);
             _mapper = mapper;
+            _logging = logging;
         }
 
         public async Task<Going.Plaid.Link.LinkTokenCreateResponse> CreateLinkTokenRequest(User user)
@@ -57,9 +61,13 @@ namespace financing_api.ApiHelper
 
             };
 
-            var result = await _client.LinkTokenCreateAsync(request);
+            _logging.LogDataExchange("FinanceApp", "Plaid", Newtonsoft.Json.JsonConvert.SerializeObject(request));
 
-            return result;
+            var response = await _client.LinkTokenCreateAsync(request);
+
+            _logging.LogDataExchange("Plaid", "FinanceApp", Newtonsoft.Json.JsonConvert.SerializeObject(response));
+
+            return response;
         }
 
         public async Task<Going.Plaid.Link.LinkTokenCreateResponse> UpdateLinkTokenRequest(User user)
@@ -80,14 +88,18 @@ namespace financing_api.ApiHelper
                 User = plaidUser,
             };
 
-            var result = await _client.LinkTokenCreateAsync(request);
+            _logging.LogDataExchange("FinanceApp", "Plaid", Newtonsoft.Json.JsonConvert.SerializeObject(request));
 
-            return result;
+            var response = await _client.LinkTokenCreateAsync(request);
+
+            _logging.LogDataExchange("Plaid", "FinanceApp", Newtonsoft.Json.JsonConvert.SerializeObject(response));
+
+            return response;
         }
 
         public async Task<Going.Plaid.Item.ItemPublicTokenExchangeResponse> PublicTokenExchangeRequest(string publicToken)
         {
-            var result = await _client.ItemPublicTokenExchangeAsync(
+            var response = await _client.ItemPublicTokenExchangeAsync(
                 new()
                 {
                     ClientId = _configuration["PlaidClientId"],
@@ -96,7 +108,7 @@ namespace financing_api.ApiHelper
                 }
             );
 
-            return result;
+            return response;
         }
 
 
@@ -110,9 +122,13 @@ namespace financing_api.ApiHelper
                 AccessToken = user.AccessToken,
             };
 
-            var result = await _client.AccountsBalanceGetAsync(request);
+            _logging.LogDataExchange("FinanceApp", "Plaid", Newtonsoft.Json.JsonConvert.SerializeObject(request));
 
-            return result;
+            var response = await _client.AccountsBalanceGetAsync(request);
+
+            _logging.LogDataExchange("Plaid", "FinanceApp", Newtonsoft.Json.JsonConvert.SerializeObject(response));
+
+            return response;
         }
 
         public async Task<Going.Plaid.Transactions.TransactionsGetResponse> GetTransactionsRequest(User user)
@@ -132,9 +148,14 @@ namespace financing_api.ApiHelper
                 EndDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)
             };
 
-            var result = await _client.TransactionsGetAsync(request);
+            _logging.LogDataExchange("FinanceApp", "Plaid", Newtonsoft.Json.JsonConvert.SerializeObject(request));
 
-            return result;
+            var response = await _client.TransactionsGetAsync(request);
+
+            _logging.LogDataExchange("Plaid", "FinanceApp", Newtonsoft.Json.JsonConvert.SerializeObject(response));
+
+
+            return response;
         }
 
         public async Task<Going.Plaid.Transactions.TransactionsRecurringGetResponse> GetRecurringTransactionsRequest(User user, Going.Plaid.Accounts.AccountsGetResponse accountResponse)
@@ -149,9 +170,13 @@ namespace financing_api.ApiHelper
                 AccountIds = Utilities.GetAccountIds(accountResponse.Accounts),
             };
 
-            var result = await _client.TransactionsRecurringGetAsync(request);
+            _logging.LogDataExchange("FinanceApp", "Plaid", Newtonsoft.Json.JsonConvert.SerializeObject(request));
 
-            return result;
+            var response = await _client.TransactionsRecurringGetAsync(request);
+
+            _logging.LogDataExchange("Plaid", "FinanceApp", Newtonsoft.Json.JsonConvert.SerializeObject(response));
+
+            return response;
         }
     }
 }

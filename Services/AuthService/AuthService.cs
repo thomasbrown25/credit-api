@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
+using financing_api.DbLogger;
 using financing_api.Dtos.User;
 using financing_api.Utils;
 using Microsoft.AspNetCore.Identity;
@@ -19,18 +20,21 @@ namespace financing_api.Data
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogging _logging;
 
         public AuthService(
             DataContext context,
             IConfiguration configuration,
             IMapper mapper,
-            IHttpContextAccessor httpContextAccessor
+            IHttpContextAccessor httpContextAccessor,
+            ILogging logging
         )
         {
             _context = context;
             _configuration = configuration;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
+            _logging = logging;
         }
 
         public async Task<ServiceResponse<LoadUserDto>> Register(User user, string password)
@@ -52,6 +56,12 @@ namespace financing_api.Data
                 user.PasswordSalt = passwordSalt;
 
                 _context.Users.Add(user);
+
+                UserSettings userSettings = new UserSettings();
+                userSettings.UserId = user.Id;
+
+                _context.UserSettings.Add(userSettings);
+
                 await _context.SaveChangesAsync();
 
                 // after we save user, we create and return the jwt token
@@ -62,7 +72,7 @@ namespace financing_api.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
             }
@@ -99,7 +109,7 @@ namespace financing_api.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
             }
@@ -125,7 +135,7 @@ namespace financing_api.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
             }
@@ -165,7 +175,7 @@ namespace financing_api.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
             }
@@ -183,7 +193,7 @@ namespace financing_api.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logging.LogException(ex);
             }
 
             return false;

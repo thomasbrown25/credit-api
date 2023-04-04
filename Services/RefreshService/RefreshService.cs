@@ -14,6 +14,7 @@ using financing_api.Dtos.Account;
 using financing_api.Utils;
 using financing_api.Dtos.Transaction;
 using financing_api.Dtos.Category;
+using financing_api.DbLogger;
 
 namespace financing_api.Services.RefreshService
 {
@@ -26,6 +27,7 @@ namespace financing_api.Services.RefreshService
         private readonly PlaidClient _client;
         private readonly IMapper _mapper;
         private readonly IAPI _api;
+        private readonly ILogging _logging;
 
         public RefreshService(DataContext context,
             IConfiguration configuration,
@@ -33,7 +35,8 @@ namespace financing_api.Services.RefreshService
             IOptions<PlaidCredentials> credentials,
             PlaidClient client,
             IMapper mapper,
-            IAPI api
+            IAPI api,
+            ILogging logging
         )
         {
             _context = context;
@@ -43,6 +46,7 @@ namespace financing_api.Services.RefreshService
             _client = new PlaidClient(Going.Plaid.Environment.Development);
             _mapper = mapper;
             _api = api;
+            _logging = logging;
         }
 
         public async Task<ServiceResponse<RefreshDto>> RefreshAll()
@@ -50,10 +54,13 @@ namespace financing_api.Services.RefreshService
             var response = new ServiceResponse<RefreshDto>();
             response.Data = new RefreshDto();
 
+
             try
             {
                 // *********** ACCOUNTS ************ //
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
+
+                _logging.LogTrace($"Refreshing Data for user {user.FirstName} {user.LastName}");
 
                 var accountResponse = _api.GetAccountsRequest(user);
 
@@ -159,9 +166,7 @@ namespace financing_api.Services.RefreshService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Refresh Transactions failed: " + ex.Message);
-                Console.WriteLine(ex.InnerException);
-                Console.WriteLine(ex.StackTrace);
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message + " --------- Inner Exception: " + ex.InnerException.Message;
                 return response;

@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using financing_api.Data;
 using System.Security.Claims;
 using financing_api.Dtos.Transaction;
-using financing_api.Logging;
 using Going.Plaid;
 using AutoMapper;
 using Going.Plaid.Transactions;
@@ -17,6 +16,7 @@ using financing_api.Utils;
 using System.Collections;
 using financing_api.ApiHelper;
 using financing_api.Dtos.Category;
+using financing_api.DbLogger;
 
 namespace financing_api.Services.CategoryService
 {
@@ -27,13 +27,15 @@ namespace financing_api.Services.CategoryService
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
         private readonly IAPI _api;
+        private readonly ILogging _logging;
 
         public CategoryService(
             DataContext context,
             IConfiguration configuration,
             IHttpContextAccessor httpContextAccessor,
             IMapper mapper,
-            IAPI api
+            IAPI api,
+            ILogging logging
         )
         {
             _context = context;
@@ -41,6 +43,7 @@ namespace financing_api.Services.CategoryService
             _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
             _api = api;
+            _logging = logging;
         }
 
         public async Task<ServiceResponse<GetCategoryDto>> GetCategories()
@@ -61,6 +64,7 @@ namespace financing_api.Services.CategoryService
             }
             catch (System.Exception ex)
             {
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
@@ -92,6 +96,7 @@ namespace financing_api.Services.CategoryService
             }
             catch (System.Exception ex)
             {
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
@@ -139,6 +144,7 @@ namespace financing_api.Services.CategoryService
             }
             catch (System.Exception ex)
             {
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;

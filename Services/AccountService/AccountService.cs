@@ -9,6 +9,7 @@ using financing_api.Dtos.Account;
 using financing_api.Utils;
 using Going.Plaid;
 using financing_api.ApiHelper;
+using financing_api.DbLogger;
 
 namespace financing_api.Services.AccountService
 {
@@ -19,13 +20,15 @@ namespace financing_api.Services.AccountService
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
         private readonly IAPI _api;
+        private readonly ILogging _logging;
 
         public AccountService(
             DataContext context,
             IConfiguration configuration,
             IHttpContextAccessor httpContextAccessor,
             IMapper mapper,
-            IAPI api
+            IAPI api,
+            ILogging logging
         )
         {
             _context = context;
@@ -33,6 +36,7 @@ namespace financing_api.Services.AccountService
             _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
             _api = api;
+            _logging = logging;
         }
 
         public async Task<ServiceResponse<GetAccountsDto>> GetAccountsBalance()
@@ -55,7 +59,7 @@ namespace financing_api.Services.AccountService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Account Balances failed");
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
@@ -79,12 +83,11 @@ namespace financing_api.Services.AccountService
                                 .Where(a => a.AccountId == accountId)
                                 .SingleOrDefaultAsync();
 
-
                 response.Data.Account = _mapper.Map<AccountDto>(dbAccount);
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Account Balances failed");
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
@@ -132,7 +135,7 @@ namespace financing_api.Services.AccountService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Account Balances failed");
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 response.InnerException = ex.InnerException.Message;
@@ -173,7 +176,7 @@ namespace financing_api.Services.AccountService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;

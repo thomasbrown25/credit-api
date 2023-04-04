@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using financing_api.Data;
+using financing_api.DbLogger;
 using financing_api.Dtos.Frequency;
 using financing_api.Utils;
 using Microsoft.EntityFrameworkCore;
@@ -16,18 +17,21 @@ namespace financing_api.Services.FrequencyService
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
+        private readonly ILogging _logging;
 
         public FrequencyService(
             DataContext context,
             IConfiguration configuration,
             IHttpContextAccessor httpContextAccessor,
-            IMapper mapper
+            IMapper mapper,
+            ILogging logging
         )
         {
             _context = context;
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
+            _logging = logging;
         }
 
         public async Task<ServiceResponse<GetFrequencyDto>> GetFrequencies()
@@ -45,6 +49,7 @@ namespace financing_api.Services.FrequencyService
             }
             catch (System.Exception ex)
             {
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
@@ -76,6 +81,7 @@ namespace financing_api.Services.FrequencyService
             }
             catch (System.Exception ex)
             {
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;

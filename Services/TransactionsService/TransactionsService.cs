@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using financing_api.Data;
 using System.Security.Claims;
 using financing_api.Dtos.Transaction;
-using financing_api.Logging;
 using Going.Plaid;
 using AutoMapper;
 using Going.Plaid.Transactions;
@@ -17,6 +16,8 @@ using financing_api.Utils;
 using System.Collections;
 using financing_api.ApiHelper;
 using financing_api.DAL;
+using financing_api.Logger;
+using financing_api.DbLogger;
 
 namespace financing_api.Services.TransactionsService
 {
@@ -30,6 +31,7 @@ namespace financing_api.Services.TransactionsService
         private readonly IMapper _mapper;
         private readonly IAPI _api;
         private readonly TransactionDAL _transactionDal;
+        private readonly ILogging _logging;
 
         public TransactionsService(
             DataContext context,
@@ -39,7 +41,8 @@ namespace financing_api.Services.TransactionsService
             PlaidClient client,
             IMapper mapper,
             IAPI api,
-            TransactionDAL transactionDAL
+            TransactionDAL transactionDAL,
+            ILogging logging
         )
         {
             _context = context;
@@ -50,6 +53,7 @@ namespace financing_api.Services.TransactionsService
             _mapper = mapper;
             _api = api;
             _transactionDal = transactionDAL;
+            _logging = logging;
         }
 
         public async Task<ServiceResponse<GetTransactionsDto>> GetTransactions()
@@ -65,10 +69,11 @@ namespace financing_api.Services.TransactionsService
                 var dbTransactions = _transactionDal.GetDbTransactions(user).Result;
 
                 response.Data.Transactions = _transactionDal.GetTransactions(dbTransactions);
+
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Get Transactions failed: " + ex.Message);
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
@@ -101,7 +106,7 @@ namespace financing_api.Services.TransactionsService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
@@ -128,7 +133,7 @@ namespace financing_api.Services.TransactionsService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
@@ -169,7 +174,7 @@ namespace financing_api.Services.TransactionsService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
@@ -204,7 +209,7 @@ namespace financing_api.Services.TransactionsService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
@@ -239,7 +244,7 @@ namespace financing_api.Services.TransactionsService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
@@ -275,7 +280,7 @@ namespace financing_api.Services.TransactionsService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
@@ -315,7 +320,7 @@ namespace financing_api.Services.TransactionsService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
@@ -348,7 +353,7 @@ namespace financing_api.Services.TransactionsService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
@@ -382,7 +387,7 @@ namespace financing_api.Services.TransactionsService
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine("Recurring Transactions failed: " + ex.Message);
+                _logging.LogException(ex);
                 response.Success = false;
                 response.Message = ex.Message;
                 return response;
