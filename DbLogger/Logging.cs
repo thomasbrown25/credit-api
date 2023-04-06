@@ -17,17 +17,17 @@ namespace financing_api.Logger
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async void LogTrace(string message)
+        public void LogTrace(string message)
         {
             LoggingTrace log = new LoggingTrace();
 
             log.Message = message;
 
             _context.LoggingTrace.Add(log);
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
 
-        public async void LogException(Exception? exception)
+        public void LogException(Exception? exception)
         {
             LoggingException log = new LoggingException();
 
@@ -37,10 +37,10 @@ namespace financing_api.Logger
             log.InnerExceptionStackTrace = exception.InnerException?.StackTrace;
 
             _context.LoggingException.Add(log);
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
 
-        public async void LogDataExchange(string messageSource, string messageTarget, string messagePayload)
+        public void LogDataExchange(string messageSource, string messageTarget, string messagePayload)
         {
             LoggingDataExchange log = new LoggingDataExchange();
 
@@ -49,7 +49,7 @@ namespace financing_api.Logger
             log.MessagePayload = messagePayload;
 
             _context.LoggingDataExchange.Add(log);
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
         }
     }
