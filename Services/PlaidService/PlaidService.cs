@@ -10,7 +10,7 @@ using financing_api.Dtos.Plaid;
 using Going.Plaid;
 using Going.Plaid.Entity;
 using Going.Plaid.Link;
-using financing_api.ApiHelper;
+using financing_api.PlaidInterface;
 using financing_api.DbLogger;
 
 namespace financing_api.Services.PlaidService
@@ -21,7 +21,7 @@ namespace financing_api.Services.PlaidService
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly PlaidClient _client;
-        private readonly IAPI _api;
+        private readonly IPlaidApi _plaidApi;
         private readonly ILogging _logging;
 
         public PlaidService(
@@ -29,7 +29,7 @@ namespace financing_api.Services.PlaidService
             IConfiguration configuration,
             IHttpContextAccessor httpContextAccessor,
             PlaidClient client,
-             IAPI api,
+             IPlaidApi plaidApi,
             ILogging logging
         )
         {
@@ -37,7 +37,7 @@ namespace financing_api.Services.PlaidService
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
             _client = new PlaidClient(Going.Plaid.Environment.Development);
-            _api = api;
+            _plaidApi = plaidApi;
             _logging = logging;
         }
 
@@ -50,7 +50,7 @@ namespace financing_api.Services.PlaidService
                 // Get current user from sql db
                 User user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                var linkResponse = _api.CreateLinkTokenRequest(user);
+                var linkResponse = _plaidApi.CreateLinkTokenRequest(user);
 
                 if (linkResponse.Result.Error is not null)
                 {
@@ -85,7 +85,7 @@ namespace financing_api.Services.PlaidService
                 // Get current user from sql db
                 User user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                var linkResponse = _api.UpdateLinkTokenRequest(user);
+                var linkResponse = _plaidApi.UpdateLinkTokenRequest(user);
 
                 if (linkResponse.Result.Error is not null)
                 {
@@ -117,7 +117,7 @@ namespace financing_api.Services.PlaidService
             try
             {
                 // Exchange publicToken for accessToken
-                var exchangeResponse = _api.PublicTokenExchangeRequest(publicToken);
+                var exchangeResponse = _plaidApi.PublicTokenExchangeRequest(publicToken);
 
                 // Save accessToken to SQL DB
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);

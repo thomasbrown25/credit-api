@@ -40,12 +40,13 @@ namespace financing_api.Logger
             _context.SaveChanges();
         }
 
-        public void LogDataExchange(string messageSource, string messageTarget, string messagePayload)
+        public void LogDataExchange(string messageSource, string messageTarget, string methodCall, string messagePayload)
         {
             LoggingDataExchange log = new LoggingDataExchange();
 
             log.MessageSource = messageSource;
             log.MessageTarget = messageTarget;
+            log.MethodCall = methodCall;
             log.MessagePayload = messagePayload;
 
             _context.LoggingDataExchange.Add(log);

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace financing_api.ApiHelper
+namespace financing_api.PlaidInterface
 {
-    public interface IAPI
+    public interface IPlaidApi
     {
         Task<Going.Plaid.Accounts.AccountsGetResponse> GetAccountsRequest(User user);
         Task<Going.Plaid.Link.LinkTokenCreateResponse> CreateLinkTokenRequest(User user);

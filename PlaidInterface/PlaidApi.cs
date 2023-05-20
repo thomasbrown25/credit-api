@@ -11,9 +11,9 @@ using Going.Plaid.Entity;
 using financing_api.Utils;
 using financing_api.DbLogger;
 
-namespace financing_api.ApiHelper
+namespace financing_api.PlaidInterface
 {
-    public class API : IAPI
+    public class PlaidApi : IPlaidApi
     {
         private readonly DataContext _context;
         private readonly IConfiguration _configuration;
@@ -23,7 +23,7 @@ namespace financing_api.ApiHelper
         private readonly IMapper _mapper;
         private readonly ILogging _logging;
 
-        public API(
+        public PlaidApi(
             DataContext context,
             IConfiguration configuration,
             IHttpContextAccessor httpContextAccessor,
@@ -61,11 +61,11 @@ namespace financing_api.ApiHelper
 
             };
 
-            _logging.LogDataExchange("FinanceApp", "Plaid", Newtonsoft.Json.JsonConvert.SerializeObject(request));
+            _logging.LogDataExchange("FinanceApp", "Plaid", "CreateLinkToken", Newtonsoft.Json.JsonConvert.SerializeObject(request));
 
             var response = await _client.LinkTokenCreateAsync(request);
 
-            _logging.LogDataExchange("Plaid", "FinanceApp", Newtonsoft.Json.JsonConvert.SerializeObject(response));
+            _logging.LogDataExchange("Plaid", "FinanceApp", "CreateLinkToken", Newtonsoft.Json.JsonConvert.SerializeObject(response));
 
             return response;
         }
@@ -88,11 +88,11 @@ namespace financing_api.ApiHelper
                 User = plaidUser,
             };
 
-            _logging.LogDataExchange("FinanceApp", "Plaid", Newtonsoft.Json.JsonConvert.SerializeObject(request));
+            _logging.LogDataExchange("FinanceApp", "Plaid", "UpdateLinkToken", Newtonsoft.Json.JsonConvert.SerializeObject(request));
 
             var response = await _client.LinkTokenCreateAsync(request);
 
-            _logging.LogDataExchange("Plaid", "FinanceApp", Newtonsoft.Json.JsonConvert.SerializeObject(response));
+            _logging.LogDataExchange("Plaid", "FinanceApp", "UpdateLinkToken", Newtonsoft.Json.JsonConvert.SerializeObject(response));
 
             return response;
         }
@@ -122,11 +122,11 @@ namespace financing_api.ApiHelper
                 AccessToken = user.AccessToken,
             };
 
-            _logging.LogDataExchange("FinanceApp", "Plaid", Newtonsoft.Json.JsonConvert.SerializeObject(request));
+            _logging.LogDataExchange("FinanceApp", "Plaid", "GetAccounts", Newtonsoft.Json.JsonConvert.SerializeObject(request));
 
             var response = await _client.AccountsBalanceGetAsync(request);
 
-            _logging.LogDataExchange("Plaid", "FinanceApp", Newtonsoft.Json.JsonConvert.SerializeObject(response));
+            _logging.LogDataExchange("Plaid", "FinanceApp", "GetAccounts", Newtonsoft.Json.JsonConvert.SerializeObject(response));
 
             return response;
         }
@@ -148,11 +148,11 @@ namespace financing_api.ApiHelper
                 EndDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)
             };
 
-            _logging.LogDataExchange("FinanceApp", "Plaid", Newtonsoft.Json.JsonConvert.SerializeObject(request));
+            _logging.LogDataExchange("FinanceApp", "Plaid", "GetTransactions", Newtonsoft.Json.JsonConvert.SerializeObject(request));
 
             var response = await _client.TransactionsGetAsync(request);
 
-            _logging.LogDataExchange("Plaid", "FinanceApp", Newtonsoft.Json.JsonConvert.SerializeObject(response));
+            _logging.LogDataExchange("Plaid", "FinanceApp", "GetTransactions", Newtonsoft.Json.JsonConvert.SerializeObject(response));
 
 
             return response;
@@ -170,11 +170,11 @@ namespace financing_api.ApiHelper
                 AccountIds = Utilities.GetAccountIds(accountResponse.Accounts),
             };
 
-            _logging.LogDataExchange("FinanceApp", "Plaid", Newtonsoft.Json.JsonConvert.SerializeObject(request));
+            _logging.LogDataExchange("FinanceApp", "Plaid", "GetRecurringTransactions", Newtonsoft.Json.JsonConvert.SerializeObject(request));
 
             var response = await _client.TransactionsRecurringGetAsync(request);
 
-            _logging.LogDataExchange("Plaid", "FinanceApp", Newtonsoft.Json.JsonConvert.SerializeObject(response));
+            _logging.LogDataExchange("Plaid", "FinanceApp", "GetRecurringTransactions", Newtonsoft.Json.JsonConvert.SerializeObject(response));
 
             return response;
         }

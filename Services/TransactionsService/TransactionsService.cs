@@ -14,7 +14,7 @@ using financing_api.Shared;
 using financing_api.Dtos.Account;
 using financing_api.Utils;
 using System.Collections;
-using financing_api.ApiHelper;
+using financing_api.PlaidInterface;
 using financing_api.DAL;
 using financing_api.Logger;
 using financing_api.DbLogger;
@@ -29,7 +29,7 @@ namespace financing_api.Services.TransactionsService
         private readonly PlaidCredentials _credentials;
         private readonly PlaidClient _client;
         private readonly IMapper _mapper;
-        private readonly IAPI _api;
+        private readonly IPlaidApi _plaidApi;
         private readonly TransactionDAL _transactionDal;
         private readonly ILogging _logging;
 
@@ -40,7 +40,7 @@ namespace financing_api.Services.TransactionsService
             IOptions<PlaidCredentials> credentials,
             PlaidClient client,
             IMapper mapper,
-            IAPI api,
+            IPlaidApi plaidApi,
             TransactionDAL transactionDAL,
             ILogging logging
         )
@@ -51,7 +51,7 @@ namespace financing_api.Services.TransactionsService
             _credentials = credentials.Value;
             _client = new PlaidClient(Going.Plaid.Environment.Development);
             _mapper = mapper;
-            _api = api;
+            _plaidApi = plaidApi;
             _transactionDal = transactionDAL;
             _logging = logging;
         }
@@ -91,13 +91,11 @@ namespace financing_api.Services.TransactionsService
                 // Get user for accessToken
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                var dbRecurrings = _transactionDal.GetDbRecurrings(user).Result;
+                response.Data.Transactions = _transactionDal.GetRecurringTransactions(user).Result;
 
-                response.Data.Transactions = _transactionDal.GetRecurringTransactions(dbRecurrings);
+                response.Data.Incomes = _transactionDal.GetIncomes(user).Result;
 
-                response.Data.Incomes = _transactionDal.GetIncomes(dbRecurrings);
-
-                response.Data.Expenses = _transactionDal.GetExpenses(dbRecurrings);
+                response.Data.Expenses = _transactionDal.GetExpenses(user).Result;
 
                 response.Data.TotalIncome = Helper.GetTotalIncome(response.Data.Incomes);
 
@@ -126,9 +124,7 @@ namespace financing_api.Services.TransactionsService
                 // Get user for accessToken
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                var dbRecurrings = _transactionDal.GetDbRecurrings(user).Result;
-
-                response.Data.Expenses = _transactionDal.GetExpenses(dbRecurrings);
+                response.Data.Expenses = _transactionDal.GetExpenses(user).Result;
 
             }
             catch (System.Exception ex)
@@ -159,13 +155,11 @@ namespace financing_api.Services.TransactionsService
 
                 await _context.SaveChangesAsync();
 
-                var dbRecurrings = _transactionDal.GetDbRecurrings(user).Result;
+                response.Data.Transactions = _transactionDal.GetRecurringTransactions(user).Result;
 
-                response.Data.Transactions = _transactionDal.GetRecurringTransactions(dbRecurrings);
+                response.Data.Incomes = _transactionDal.GetIncomes(user).Result;
 
-                response.Data.Incomes = _transactionDal.GetIncomes(dbRecurrings);
-
-                response.Data.Expenses = _transactionDal.GetExpenses(dbRecurrings);
+                response.Data.Expenses = _transactionDal.GetExpenses(user).Result;
 
                 response.Data.TotalIncome = Helper.GetTotalIncome(response.Data.Incomes);
 
@@ -192,7 +186,8 @@ namespace financing_api.Services.TransactionsService
             {
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                var dbRecurring = _transactionDal.GetDbRecurring(updatedRecurring.Id).Result;
+                var dbRecurring = await _context.Recurrings
+                    .FirstOrDefaultAsync(r => r.Id == updatedRecurring.Id);
 
                 // confirm that current user is owner
                 if (dbRecurring.UserId == user.Id)
@@ -201,9 +196,7 @@ namespace financing_api.Services.TransactionsService
 
                     await _context.SaveChangesAsync();
 
-                    var dbRecurrings = _transactionDal.GetDbRecurrings(user).Result;
-
-                    response.Data.Expenses = _transactionDal.GetExpenses(dbRecurrings);
+                    response.Data.Expenses = _transactionDal.GetExpenses(user).Result;
                 }
 
             }
@@ -227,7 +220,10 @@ namespace financing_api.Services.TransactionsService
             {
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                var dbRecurring = _transactionDal.GetDbRecurring(updatedRecurring.Id).Result;
+                //var dbRecurring = _transactionDal.GetDbRecurring(updatedRecurring.Id).Result;
+
+                var dbRecurring = await _context.Recurrings
+                    .FirstOrDefaultAsync(r => r.Id == updatedRecurring.Id);
 
                 // confirm that current user is owner
                 if (dbRecurring.UserId == user.Id)
@@ -236,9 +232,7 @@ namespace financing_api.Services.TransactionsService
 
                     await _context.SaveChangesAsync();
 
-                    var dbRecurrings = _transactionDal.GetDbRecurrings(user).Result;
-
-                    response.Data.Incomes = _transactionDal.GetIncomes(dbRecurrings);
+                    response.Data.Incomes = _transactionDal.GetIncomes(user).Result;
                 }
 
             }
@@ -272,9 +266,7 @@ namespace financing_api.Services.TransactionsService
 
                     await _context.SaveChangesAsync();
 
-                    var dbRecurrings = _transactionDal.GetDbRecurrings(user).Result;
-
-                    response.Data.Expenses = _transactionDal.GetExpenses(dbRecurrings);
+                    response.Data.Expenses = _transactionDal.GetExpenses(user).Result;
                 }
 
             }
@@ -347,9 +339,7 @@ namespace financing_api.Services.TransactionsService
 
                 await _context.SaveChangesAsync();
 
-                var dbRecurrings = _transactionDal.GetDbRecurrings(user).Result;
-
-                response.Data.Incomes = _transactionDal.GetIncomes(dbRecurrings);
+                response.Data.Incomes = _transactionDal.GetIncomes(user).Result;
             }
             catch (System.Exception ex)
             {
@@ -374,15 +364,16 @@ namespace financing_api.Services.TransactionsService
                 // Get user for accessToken
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                var dbIncome = _transactionDal.GetIncome(user, incomeId).Result;
+                var dbIncome = await _context.Recurrings
+                    .Where(r => r.UserId == user.Id)
+                    .Where(r => r.StreamId == incomeId)
+                    .FirstOrDefaultAsync();
 
                 dbIncome.IsActive = recurringDto.IsActive;
 
                 await _context.SaveChangesAsync();
 
-                var dbRecurrings = _transactionDal.GetDbRecurrings(user).Result;
-
-                response.Data.Incomes = _transactionDal.GetIncomes(dbRecurrings);
+                response.Data.Incomes = _transactionDal.GetIncomes(user).Result;
 
             }
             catch (System.Exception ex)

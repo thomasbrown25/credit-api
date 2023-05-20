@@ -39,11 +39,53 @@ namespace financing_api.DAL
                     .FirstOrDefaultAsync(r => r.Id == transactionId);
         }
 
-        public List<RecurringDto> GetIncomes(List<Recurring> dbRecurrings)
+        public async Task<List<RecurringDto>> GetExpenses(User user, bool isActive = true, bool ignoreActive = false)
         {
+            var dbRecurrings = new List<Recurring>();
+
+            if (ignoreActive)
+            {
+                dbRecurrings = await _context.Recurrings
+                                    .Where(r => r.UserId == user.Id)
+                                    .ToListAsync();
+            }
+            else
+            {
+                dbRecurrings = await _context.Recurrings
+                                    .Where(r => r.UserId == user.Id)
+                                    .Where(r => r.IsActive == isActive)
+                                    .ToListAsync();
+            }
+
             return dbRecurrings
-                    .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
+                    .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
                     .Where(r => r.IsActive == true)
+                    .Select(r => _mapper.Map<RecurringDto>(r))
+                    .OrderBy(r => r.DueDate)
+                    .ToList();
+        }
+
+        public async Task<List<RecurringDto>> GetIncomes(User user, bool isActive = true, bool ignoreActive = false)
+        {
+            var dbRecurrings = new List<Recurring>();
+
+            if (ignoreActive)
+            {
+                dbRecurrings = await _context.Recurrings
+                                    .Where(r => r.UserId == user.Id)
+                                    .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
+                                    .ToListAsync();
+            }
+            else
+            {
+                dbRecurrings = await _context.Recurrings
+                                    .Where(r => r.UserId == user.Id)
+                                    .Where(r => r.IsActive == isActive)
+                                    .Where(r => r.Type == Enum.GetName<EType>(EType.Income))
+                                    .ToListAsync();
+            }
+
+            return dbRecurrings
                     .Select(r => _mapper.Map<RecurringDto>(r))
                     .OrderByDescending(r => r.LastAmount)
                     .ToList();
@@ -54,24 +96,21 @@ namespace financing_api.DAL
             return await _context.Recurrings
                     .Where(r => r.UserId == user.Id)
                     .Where(r => r.StreamId == incomeId)
-                    .SingleOrDefaultAsync();
+                    .FirstOrDefaultAsync();
         }
 
-        public List<RecurringDto> GetRecurringTransactions(List<Recurring> dbRecurrings)
+        public async Task<List<RecurringDto>> GetRecurringTransactions(User user)
         {
-            return dbRecurrings
-                    .Where(r => r.IsActive == true)
-                    .Select(r => _mapper.Map<RecurringDto>(r))
-                    .OrderByDescending(r => r.DueDate).ToList();
-        }
+            var dbRecurrings = new List<Recurring>();
 
-        public List<RecurringDto> GetExpenses(List<Recurring> dbRecurrings)
-        {
+            dbRecurrings = await _context.Recurrings
+                                    .Where(r => r.UserId == user.Id)
+                                    .Where(r => r.IsActive == true)
+                                    .OrderByDescending(r => r.DueDate)
+                                    .ToListAsync();
+
             return dbRecurrings
-                    .Where(r => r.Type == Enum.GetName<EType>(EType.Expense))
-                    .Where(r => r.IsActive == true)
                     .Select(r => _mapper.Map<RecurringDto>(r))
-                    .OrderBy(r => r.DueDate)
                     .ToList();
         }
 

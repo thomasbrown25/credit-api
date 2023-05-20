@@ -8,13 +8,14 @@ using Going.Plaid;
 using AutoMapper;
 using Microsoft.Extensions.Options;
 using financing_api.Shared;
-using financing_api.ApiHelper;
+using financing_api.PlaidInterface;
 using financing_api.Dtos.Refresh;
 using financing_api.Dtos.Account;
 using financing_api.Utils;
 using financing_api.Dtos.Transaction;
 using financing_api.Dtos.Category;
 using financing_api.DbLogger;
+using financing_api.DAL;
 
 namespace financing_api.Services.RefreshService
 {
@@ -26,7 +27,8 @@ namespace financing_api.Services.RefreshService
         private readonly PlaidCredentials _credentials;
         private readonly PlaidClient _client;
         private readonly IMapper _mapper;
-        private readonly IAPI _api;
+        private readonly IPlaidApi _plaidApi;
+        private readonly TransactionDAL _transactionDal;
         private readonly ILogging _logging;
 
         public RefreshService(DataContext context,
@@ -35,7 +37,8 @@ namespace financing_api.Services.RefreshService
             IOptions<PlaidCredentials> credentials,
             PlaidClient client,
             IMapper mapper,
-            IAPI api,
+            IPlaidApi plaidApi,
+            TransactionDAL transactionDAL,
             ILogging logging
         )
         {
@@ -45,7 +48,8 @@ namespace financing_api.Services.RefreshService
             _credentials = credentials.Value;
             _client = new PlaidClient(Going.Plaid.Environment.Development);
             _mapper = mapper;
-            _api = api;
+            _plaidApi = plaidApi;
+            _transactionDal = transactionDAL;
             _logging = logging;
         }
 
@@ -62,7 +66,7 @@ namespace financing_api.Services.RefreshService
 
                 _logging.LogTrace($"Refreshing Data for user {user.FirstName} {user.LastName}");
 
-                var accountResponse = _api.GetAccountsRequest(user);
+                var accountResponse = _plaidApi.GetAccountsRequest(user);
 
                 if (!Helper.IsValid(accountResponse))
                 {
@@ -92,7 +96,7 @@ namespace financing_api.Services.RefreshService
                 await _context.SaveChangesAsync();
 
                 // ********* TRANSACTIONS ************ //
-                var result = await _api.GetTransactionsRequest(user);
+                var result = await _plaidApi.GetTransactionsRequest(user);
 
                 var categoryList = new List<string>();
 
@@ -115,7 +119,7 @@ namespace financing_api.Services.RefreshService
                     var dbCategory = await _context.Categories
                                         .FirstOrDefaultAsync(c => c.Name.ToLower() == category);
 
-                    if (dbCategory is null && !categoryList.Contains(category))
+                    if (dbCategory is null && !categoryList.Contains(category) && category is not null)
                     {
                         categoryDto.Name = category;
                         Category categoryDb = _mapper.Map<Category>(categoryDto);
@@ -144,7 +148,7 @@ namespace financing_api.Services.RefreshService
                     return response;
                 }
 
-                var recurringResponse = _api.GetRecurringTransactionsRequest(user, accountResponse2);
+                var recurringResponse = _plaidApi.GetRecurringTransactionsRequest(user, accountResponse2);
 
                 if (recurringResponse.Result.Error is not null)
                 {
@@ -154,12 +158,15 @@ namespace financing_api.Services.RefreshService
                     return response;
                 }
 
+                var dbIncomes = _transactionDal.GetIncomes(user, true, true).Result;
+                var dbExpenses = _transactionDal.GetExpenses(user, true, true).Result;
+
                 // add streams to context 
-                Helper.AddStreams(recurringResponse.Result.InflowStreams, _context, _mapper, user, EType.Income);
-                Helper.AddStreams(recurringResponse.Result.OutflowStreams, _context, _mapper, user, EType.Expense);
+                Helper.AddStreams(recurringResponse.Result.InflowStreams, _context, _mapper, user, EType.Income, dbIncomes);
+                Helper.AddStreams(recurringResponse.Result.OutflowStreams, _context, _mapper, user, EType.Expense, dbExpenses);
 
                 // save streams to context
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
 
                 return response;
 

@@ -41,7 +41,7 @@ namespace financing_api.Services.UserSettingService
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
                 var dbSettings = await _context.UserSettings
-                                   .SingleOrDefaultAsync(s => s.UserId == user.Id);
+                                   .FirstOrDefaultAsync(s => s.UserId == user.Id);
 
                 response.Data = _mapper.Map<SettingsDto>(dbSettings);
             }
@@ -65,7 +65,7 @@ namespace financing_api.Services.UserSettingService
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
                 var dbSettings = await _context.UserSettings
-                                   .SingleOrDefaultAsync(s => s.UserId == user.Id);
+                                   .FirstOrDefaultAsync(s => s.UserId == user.Id);
 
                 _mapper.Map<SettingsDto, UserSettings>(newSettings, dbSettings);
 

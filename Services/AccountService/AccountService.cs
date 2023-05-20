@@ -8,7 +8,7 @@ using financing_api.Data;
 using financing_api.Dtos.Account;
 using financing_api.Utils;
 using Going.Plaid;
-using financing_api.ApiHelper;
+using financing_api.PlaidInterface;
 using financing_api.DbLogger;
 
 namespace financing_api.Services.AccountService
@@ -19,7 +19,7 @@ namespace financing_api.Services.AccountService
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
-        private readonly IAPI _api;
+        private readonly IPlaidApi _plaidApi;
         private readonly ILogging _logging;
 
         public AccountService(
@@ -27,7 +27,7 @@ namespace financing_api.Services.AccountService
             IConfiguration configuration,
             IHttpContextAccessor httpContextAccessor,
             IMapper mapper,
-            IAPI api,
+            IPlaidApi plaidApi,
             ILogging logging
         )
         {
@@ -35,7 +35,7 @@ namespace financing_api.Services.AccountService
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
-            _api = api;
+            _plaidApi = plaidApi;
             _logging = logging;
         }
 
@@ -81,7 +81,7 @@ namespace financing_api.Services.AccountService
                 var dbAccount = await _context.Accounts
                                 .Where(a => a.UserId == user.Id)
                                 .Where(a => a.AccountId == accountId)
-                                .SingleOrDefaultAsync();
+                                .FirstOrDefaultAsync();
 
                 response.Data.Account = _mapper.Map<AccountDto>(dbAccount);
             }
@@ -106,7 +106,7 @@ namespace financing_api.Services.AccountService
 
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                var accountResponse = _api.GetAccountsRequest(user);
+                var accountResponse = _plaidApi.GetAccountsRequest(user);
 
                 foreach (var account in accountResponse.Result.Accounts)
                 {
@@ -119,6 +119,12 @@ namespace financing_api.Services.AccountService
 
                         Account accountDb = _mapper.Map<Account>(accountDto);
                         _context.Accounts.Add(accountDb);
+                    }
+                    else
+                    {
+                        dbAccount.BalanceAvailable = account.Balances.Available;
+                        dbAccount.BalanceCurrent = account.Balances.Current;
+                        dbAccount.BalanceLimit = account.Balances.Limit;
                     }
                 }
 
@@ -160,7 +166,7 @@ namespace financing_api.Services.AccountService
                 var dbAccount = await _context.Accounts
                                 .Where(a => a.UserId == user.Id)
                                 .Where(a => a.AccountId == accountId)
-                                .SingleOrDefaultAsync();
+                                .FirstOrDefaultAsync();
 
                 _context.Accounts.Remove(dbAccount);
 

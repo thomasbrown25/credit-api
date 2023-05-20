@@ -14,7 +14,7 @@ using financing_api.Shared;
 using financing_api.Dtos.Account;
 using financing_api.Utils;
 using System.Collections;
-using financing_api.ApiHelper;
+using financing_api.PlaidInterface;
 using financing_api.Dtos.Category;
 using financing_api.DbLogger;
 
@@ -26,7 +26,7 @@ namespace financing_api.Services.CategoryService
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
-        private readonly IAPI _api;
+        private readonly IPlaidApi _plaidApi;
         private readonly ILogging _logging;
 
         public CategoryService(
@@ -34,7 +34,7 @@ namespace financing_api.Services.CategoryService
             IConfiguration configuration,
             IHttpContextAccessor httpContextAccessor,
             IMapper mapper,
-            IAPI api,
+            IPlaidApi plaidApi,
             ILogging logging
         )
         {
@@ -42,7 +42,7 @@ namespace financing_api.Services.CategoryService
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
-            _api = api;
+            _plaidApi = plaidApi;
             _logging = logging;
         }
 
@@ -115,7 +115,7 @@ namespace financing_api.Services.CategoryService
 
                 var user = Utilities.GetCurrentUser(_context, _httpContextAccessor);
 
-                var result = await _api.GetTransactionsRequest(user);
+                var result = await _plaidApi.GetTransactionsRequest(user);
 
                 foreach (var transaction in result.Transactions)
                 {

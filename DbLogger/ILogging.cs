@@ -9,6 +9,6 @@ namespace financing_api.DbLogger
     {
         void LogTrace(string message);
         void LogException(Exception? exception);
-        void LogDataExchange(string messageSource, string messageTarget, string messagePayload);
+        void LogDataExchange(string messageSource, string messageTarget, string methodCall, string messagePayload);
     }
 }

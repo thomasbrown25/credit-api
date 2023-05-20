@@ -121,13 +121,15 @@ namespace financing_api.Services.RefreshService
             }
         }
 
-        public static void AddStreams(IReadOnlyList<Going.Plaid.Entity.TransactionStream> streams, DataContext context, IMapper mapper, User user, EType type)
+        public static async void AddStreams(IReadOnlyList<Going.Plaid.Entity.TransactionStream> streams, DataContext context, IMapper mapper, User user, EType type, List<RecurringDto> dbRecurrings)
         {
+
             foreach (var stream in streams)
             {
                 if (!stream.Category.Contains("Internal Account Transfer") && (!stream.Category.Contains("Interest")))
                 {
-                    var dbRecurring = context.Recurrings
+
+                    var dbRecurring = dbRecurrings
                         .FirstOrDefault(r => r.StreamId == stream.StreamId || r.Description == stream.Description && r.FirstDate == stream.FirstDate.ToDateTime(TimeOnly.Parse("00:00:00")) && r.LastAmount == stream.LastAmount.Amount);
 
                     if (dbRecurring is null)
@@ -138,18 +140,21 @@ namespace financing_api.Services.RefreshService
                         Recurring recurringDb = mapper.Map<Recurring>(recurring);
                         context.Recurrings.Add(recurringDb);
                     }
-                    else
+                    else if (dbRecurring.IsActive && dbRecurring.Type == EType.Expense.ToString() && dbRecurring.DueDate < DateTime.Today.AddDays(-5))
                     {
-                        if (dbRecurring.IsActive && (dbRecurring.DueDate < DateTime.Today.AddDays(-5) || dbRecurring.Type == EType.Income.ToString() && dbRecurring.DueDate <= DateTime.Today))
-                        {
-                            RefreshDueDate(ref dbRecurring);
-                        }
+                        RefreshDueDate(ref dbRecurring);
+                    }
+                    else if (dbRecurring.IsActive && dbRecurring.Type == EType.Income.ToString() && dbRecurring.DueDate < DateTime.Today)
+                    {
+                        RefreshDueDate(ref dbRecurring);
                     }
                 }
             }
+
+
         }
 
-        public static void RefreshDueDate(ref Recurring recurring)
+        public static void RefreshDueDate(ref RecurringDto? recurring)
         {
             DateTime dueDate = (DateTime)recurring.DueDate;
 

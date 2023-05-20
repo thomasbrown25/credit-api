@@ -14,7 +14,7 @@ namespace financing_api.Models
         public string Name { get; set; }
         public string? MerchantName { get; set; }
 
-        public string Category { get; set; }
+        public string? Category { get; set; }
         public string Amount { get; set; }
         public bool Pending { get; set; }
         public DateTime Date { get; set; }
