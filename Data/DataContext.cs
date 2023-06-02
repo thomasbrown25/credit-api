@@ -22,6 +22,9 @@ namespace financing_api.Data
                 .HasConversion<string>();
 
 
+            modelBuilder.Entity<ManagedBill>()
+                            .Property(m => m.Frequency)
+                            .HasConversion<string>();
         }
 
         public DbSet<User> Users { get; set; }
@@ -34,5 +37,6 @@ namespace financing_api.Data
         public DbSet<LoggingTrace> LoggingTrace { get; set; }
         public DbSet<LoggingException> LoggingException { get; set; }
         public DbSet<LoggingDataExchange> LoggingDataExchange { get; set; }
+        public DbSet<ManagedBill> ManagedBills { get; set; }
     }
 }

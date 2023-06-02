@@ -9,6 +9,7 @@ using financing_api.Dtos.Account;
 using financing_api.Dtos.Category;
 using financing_api.Dtos.Frequency;
 using financing_api.Dtos.UserSetting;
+using financing_api.Dtos.ManagedBill;
 
 namespace financing_api
 {
@@ -36,6 +37,9 @@ namespace financing_api
             CreateMap<Frequency, AddFrequencyDto>();
             CreateMap<SettingsDto, UserSettings>();
             CreateMap<UserSettings, SettingsDto>();
+            CreateMap<ManagedBill, BillDto>();
+            CreateMap<UpdateBillDto, ManagedBill>();
+            CreateMap<AddBillDto, ManagedBill>();
         }
     }
 }

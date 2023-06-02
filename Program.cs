@@ -26,6 +26,7 @@ using financing_api.Services.UserSettingService;
 using financing_api.DAL;
 using financing_api.Logger;
 using financing_api.DbLogger;
+using financing_api.Services.ManagedBillsService;
 
 var builder = WebApplication.CreateBuilder(args);
 var configBuilder = new ConfigurationBuilder();
@@ -109,6 +110,7 @@ services.AddScoped<IPlaidService, PlaidService>();
 services.AddScoped<ITransactionsService, TransactionsService>();
 services.AddScoped<IAccountService, AccountService>();
 services.AddScoped<ICategoryService, CategoryService>();
+services.AddScoped<IManagedBillsService, ManagedBillsService>();
 services.AddScoped<IFrequencyService, FrequencyService>();
 services.AddScoped<IRefreshService, RefreshService>();
 services.AddScoped<IUserSettingService, UserSettingService>();
