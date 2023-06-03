@@ -95,7 +95,17 @@ namespace financing_api.Services.ManagedBillsService
                                    .OrderBy(c => c.Name)
                                    .ToListAsync();
 
-                response.Data.Bills = dbBills.Select(c => _mapper.Map<BillDto>(c)).ToList();
+                decimal totalAmounts = 0;
+                decimal totalMinMonthly = 0;
+                foreach (var dbBill in dbBills)
+                {
+                    totalAmounts += dbBill.TotalAmount;
+                    totalMinMonthly += dbBill.MonthlyMin;
+                }
+
+                response.Data.Bills = dbBills.Select(b => _mapper.Map<BillDto>(b)).ToList();
+                response.Data.TotalAmounts = totalAmounts;
+                response.Data.TotalMinMonthly = totalMinMonthly;
             }
             catch (System.Exception ex)
             {
@@ -130,7 +140,17 @@ namespace financing_api.Services.ManagedBillsService
                                .OrderBy(c => c.Name)
                                .ToListAsync();
 
-                    response.Data.Bills = dbBills.Select(c => _mapper.Map<BillDto>(c)).ToList();
+                    decimal totalAmounts = 0;
+                    decimal totalMinMonthly = 0;
+                    foreach (var dbBill in dbBills)
+                    {
+                        totalAmounts += dbBill.TotalAmount;
+                        totalMinMonthly += dbBill.MonthlyMin;
+                    }
+
+                    response.Data.Bills = dbBills.Select(b => _mapper.Map<BillDto>(b)).ToList();
+                    response.Data.TotalAmounts = totalAmounts;
+                    response.Data.TotalMinMonthly = totalMinMonthly;
                 }
 
             }
@@ -169,7 +189,17 @@ namespace financing_api.Services.ManagedBillsService
                                .OrderBy(c => c.Name)
                                .ToListAsync();
 
-                response.Data.Bills = dbBills.Select(c => _mapper.Map<BillDto>(c)).ToList();
+                decimal totalAmounts = 0;
+                decimal totalMinMonthly = 0;
+                foreach (var dbBill in dbBills)
+                {
+                    totalAmounts += dbBill.TotalAmount;
+                    totalMinMonthly += dbBill.MonthlyMin;
+                }
+
+                response.Data.Bills = dbBills.Select(b => _mapper.Map<BillDto>(b)).ToList();
+                response.Data.TotalAmounts = totalAmounts;
+                response.Data.TotalMinMonthly = totalMinMonthly;
             }
             catch (System.Exception ex)
             {
